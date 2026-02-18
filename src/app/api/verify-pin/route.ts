@@ -1,0 +1,161 @@
+import { NextRequest, NextResponse } from "next/server";
+import { createServiceClient } from "@/lib/supabase/server";
+import { hashPin, verifyPin } from "@/lib/pin-hash";
+import { createHash, randomBytes } from "crypto";
+
+const MAX_ATTEMPTS = 10;
+const WINDOW_MINUTES = 15;
+
+// Generate a session token signed with a server secret
+function createSessionToken(): string {
+  const token = randomBytes(32).toString("hex");
+  const secret = process.env.STAFF_PIN || "fallback-secret";
+  const signature = createHash("sha256")
+    .update(token + secret)
+    .digest("hex");
+  return `${token}.${signature}`;
+}
+
+export function verifySessionToken(token: string): boolean {
+  const parts = token.split(".");
+  if (parts.length !== 2) return false;
+  const [raw, sig] = parts;
+  const secret = process.env.STAFF_PIN || "fallback-secret";
+  const expected = createHash("sha256")
+    .update(raw + secret)
+    .digest("hex");
+  return sig === expected;
+}
+
+function getClientIp(request: NextRequest): string {
+  return (
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    request.headers.get("x-real-ip") ||
+    "unknown"
+  );
+}
+
+async function checkRateLimit(
+  supabase: ReturnType<typeof createServiceClient>,
+  ip: string
+): Promise<boolean> {
+  const windowStart = new Date(
+    Date.now() - WINDOW_MINUTES * 60 * 1000
+  ).toISOString();
+
+  // Get current attempts for this IP
+  const { data } = await supabase
+    .from("pin_attempts")
+    .select("count, window_start")
+    .eq("ip", ip)
+    .single();
+
+  if (!data) return false; // No attempts yet
+
+  // If window has expired, not rate limited
+  if (new Date(data.window_start).toISOString() < windowStart) return false;
+
+  return data.count >= MAX_ATTEMPTS;
+}
+
+async function recordAttempt(
+  supabase: ReturnType<typeof createServiceClient>,
+  ip: string
+): Promise<void> {
+  const windowStart = new Date(
+    Date.now() - WINDOW_MINUTES * 60 * 1000
+  ).toISOString();
+
+  const { data } = await supabase
+    .from("pin_attempts")
+    .select("count, window_start")
+    .eq("ip", ip)
+    .single();
+
+  if (!data || new Date(data.window_start).toISOString() < windowStart) {
+    // New window — upsert with count 1
+    await supabase
+      .from("pin_attempts")
+      .upsert({ ip, count: 1, window_start: new Date().toISOString() });
+  } else {
+    // Same window — increment
+    await supabase
+      .from("pin_attempts")
+      .update({ count: data.count + 1 })
+      .eq("ip", ip);
+  }
+}
+
+// Check if existing session cookie is valid
+export async function GET(request: NextRequest) {
+  const token = request.cookies.get("staff_session")?.value;
+  if (token && verifySessionToken(token)) {
+    return NextResponse.json({ authenticated: true });
+  }
+  return NextResponse.json({ authenticated: false }, { status: 401 });
+}
+
+export async function POST(request: NextRequest) {
+  const { pin } = await request.json();
+
+  if (!pin || typeof pin !== "string") {
+    return NextResponse.json(
+      { success: false, error: "PIN required" },
+      { status: 400 }
+    );
+  }
+
+  const supabase = createServiceClient();
+  const ip = getClientIp(request);
+
+  // Check rate limit
+  const limited = await checkRateLimit(supabase, ip);
+  if (limited) {
+    return NextResponse.json(
+      { success: false, error: "Too many attempts. Try again in 15 minutes." },
+      { status: 429 }
+    );
+  }
+
+  const { data } = await supabase
+    .from("shop_settings")
+    .select("staff_pin_hash")
+    .limit(1)
+    .single();
+
+  let valid = false;
+
+  if (data?.staff_pin_hash) {
+    valid = verifyPin(pin, data.staff_pin_hash);
+  } else if (pin === process.env.STAFF_PIN) {
+    await supabase
+      .from("shop_settings")
+      .update({ staff_pin_hash: hashPin(pin) })
+      .not("id", "is", null);
+    valid = true;
+  }
+
+  if (!valid) {
+    await recordAttempt(supabase, ip);
+    return NextResponse.json(
+      { success: false, error: "Invalid PIN" },
+      { status: 401 }
+    );
+  }
+
+  // Clear attempts on success
+  await supabase.from("pin_attempts").delete().eq("ip", ip);
+
+  // Set HTTP-only cookie with session token
+  const token = createSessionToken();
+  const response = NextResponse.json({ success: true });
+  response.cookies.set("staff_session", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    path: "/",
+    maxAge: 8 * 60 * 60, // 8 hours
+  });
+
+  return response;
+}
