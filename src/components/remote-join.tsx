@@ -12,7 +12,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { SHOP } from "@/lib/shop-config";
 
-type Step = "name" | "service" | "confirmation";
+type Step = "name" | "phone" | "verify" | "service" | "confirmation";
 
 export function RemoteJoin() {
   const {
@@ -28,6 +28,11 @@ export function RemoteJoin() {
   } = useQueue();
   const [step, setStep] = useState<Step>("name");
   const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [verifiedPhone, setVerifiedPhone] = useState("");
+  const [code, setCode] = useState("");
+  const [sendingCode, setSendingCode] = useState(false);
+  const [verifyingCode, setVerifyingCode] = useState(false);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -218,6 +223,9 @@ export function RemoteJoin() {
                 onClick={() => {
                   setStep("name");
                   setName("");
+                  setPhone("");
+                  setVerifiedPhone("");
+                  setCode("");
                   setSelectedService(null);
                   setResult(null);
                   setError("");
@@ -236,6 +244,59 @@ export function RemoteJoin() {
         )}
       </div>
     );
+  }
+
+  async function handleSendCode() {
+    setSendingCode(true);
+    setError("");
+
+    try {
+      const res = await fetch("/api/send-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "Failed to send code");
+        return;
+      }
+
+      setVerifiedPhone(data.phone);
+      setStep("verify");
+    } catch {
+      setError("Something went wrong");
+    } finally {
+      setSendingCode(false);
+    }
+  }
+
+  async function handleVerifyCode() {
+    setVerifyingCode(true);
+    setError("");
+
+    try {
+      const res = await fetch("/api/verify-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: verifiedPhone, code }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "Invalid code");
+        return;
+      }
+
+      setStep("service");
+    } catch {
+      setError("Something went wrong");
+    } finally {
+      setVerifyingCode(false);
+    }
   }
 
   async function handleSubmit() {
@@ -291,20 +352,118 @@ export function RemoteJoin() {
             className="h-14 text-lg bg-secondary border-border text-center"
             autoFocus
             onKeyDown={(e) => {
-              if (e.key === "Enter" && name.trim()) setStep("service");
+              if (e.key === "Enter" && name.trim()) setStep("phone");
             }}
           />
           <Button
             className="w-full h-14 text-lg bg-gold hover:bg-gold-dark text-black font-bold"
             disabled={!name.trim()}
-            onClick={() => setStep("service")}
+            onClick={() => setStep("phone")}
           >
             Next
           </Button>
         </div>
       )}
 
-      {/* Step 2: Service */}
+      {/* Step 2: Phone Number */}
+      {step === "phone" && (
+        <div className="w-full max-w-sm space-y-4">
+          <p className="text-center text-lg">
+            Hey <span className="text-gold font-semibold">{name.trim()}</span>,
+            enter your phone number
+          </p>
+          <p className="text-xs text-muted-foreground text-center">
+            We&apos;ll send a code to verify it&apos;s you
+          </p>
+          <Input
+            type="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="(831) 555-1234"
+            className="h-14 text-lg bg-secondary border-border text-center"
+            autoFocus
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && phone.replace(/\D/g, "").length >= 10)
+                handleSendCode();
+            }}
+          />
+
+          {error && (
+            <p className="text-destructive text-sm text-center">{error}</p>
+          )}
+
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              className="flex-1 h-14 text-lg border-border"
+              onClick={() => {
+                setStep("name");
+                setError("");
+              }}
+            >
+              Back
+            </Button>
+            <Button
+              className="flex-1 h-14 text-lg bg-gold hover:bg-gold-dark text-black font-bold"
+              disabled={phone.replace(/\D/g, "").length < 10 || sendingCode}
+              onClick={handleSendCode}
+            >
+              {sendingCode ? "Sending..." : "Send Code"}
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Step 3: Verify Code */}
+      {step === "verify" && (
+        <div className="w-full max-w-sm space-y-4">
+          <p className="text-center text-lg">
+            Enter the code sent to
+          </p>
+          <p className="text-center text-gold font-semibold">
+            {verifiedPhone}
+          </p>
+          <Input
+            type="text"
+            inputMode="numeric"
+            value={code}
+            onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
+            placeholder="Enter 6-digit code"
+            maxLength={6}
+            className="h-14 text-2xl bg-secondary border-border text-center tracking-[0.5em]"
+            autoFocus
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && code.length >= 4) handleVerifyCode();
+            }}
+          />
+
+          {error && (
+            <p className="text-destructive text-sm text-center">{error}</p>
+          )}
+
+          <Button
+            className="w-full h-14 text-lg bg-gold hover:bg-gold-dark text-black font-bold"
+            disabled={code.length < 4 || verifyingCode}
+            onClick={handleVerifyCode}
+          >
+            {verifyingCode ? "Verifying..." : "Verify"}
+          </Button>
+
+          <button
+            type="button"
+            className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors"
+            onClick={() => {
+              setCode("");
+              setError("");
+              setStep("phone");
+            }}
+          >
+            Didn&apos;t get a code? Try again
+          </button>
+        </div>
+      )}
+
+      {/* Step 4: Service */}
       {step === "service" && (
         <div className="w-full max-w-sm space-y-4">
           <p className="text-center text-lg">
@@ -342,7 +501,7 @@ export function RemoteJoin() {
               variant="outline"
               className="flex-1 h-14 text-lg border-border"
               onClick={() => {
-                setStep("name");
+                setStep("phone");
                 setSelectedService(null);
               }}
             >
