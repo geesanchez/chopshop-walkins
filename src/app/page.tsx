@@ -13,8 +13,12 @@ export default function Home() {
         className="rounded-full"
         priority
       />
-      <h1 className="text-4xl font-bold text-gold">The Chop Shop</h1>
-      <p className="text-muted-foreground text-lg">Walk-in Queue System</p>
+      <h1 className="text-4xl font-bold text-gold text-center">
+        The Chop Shop
+        <span className="block text-lg font-normal text-muted-foreground mt-1">
+          Barbershop in Watsonville, CA
+        </span>
+      </h1>
 
       <div className="grid grid-cols-2 gap-4 mt-8 w-full max-w-md">
         <Link
@@ -50,6 +54,20 @@ export default function Home() {
           <span className="text-lg font-bold">Book Appointment</span>
         </a>
       </div>
+
+      <footer className="mt-12 text-center text-sm text-muted-foreground space-y-1">
+        <p>
+          <a href={SHOP.mapsUrl} target="_blank" rel="noopener noreferrer" className="hover:text-gold transition-colors">
+            {SHOP.address}
+          </a>
+        </p>
+        <p>
+          <a href={SHOP.phoneTel} className="hover:text-gold transition-colors">
+            {SHOP.phone}
+          </a>
+        </p>
+        <p>{SHOP.hours.short}</p>
+      </footer>
     </div>
   );
 }

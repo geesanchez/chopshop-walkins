@@ -1,9 +1,19 @@
-"use client";
+import type { Metadata } from "next";
+import { JoinClient } from "./join-client";
 
 export const dynamic = "force-dynamic";
 
-import { RemoteJoin } from "@/components/remote-join";
+export const metadata: Metadata = {
+  title: "Join the Walk-in Queue — The Chop Shop, Watsonville CA",
+  description:
+    "Join The Chop Shop walk-in queue from your phone. Skip the wait at our Watsonville barbershop — get in line before you arrive.",
+  openGraph: {
+    title: "Join the Walk-in Queue — The Chop Shop",
+    description:
+      "Get in line from anywhere. Walk-in queue for The Chop Shop barbershop in Watsonville, CA.",
+  },
+};
 
 export default function JoinPage() {
-  return <RemoteJoin />;
+  return <JoinClient />;
 }

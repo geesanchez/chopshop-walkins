@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { SHOP } from "@/lib/shop-config";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -50,11 +51,46 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BarberShop",
+    name: SHOP.name,
+    url: SHOP.domain,
+    telephone: SHOP.phone,
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: "501b Main St",
+      addressLocality: "Watsonville",
+      addressRegion: "CA",
+      postalCode: "95076",
+      addressCountry: "US",
+    },
+    image: `${SHOP.domain}/logo.jpeg`,
+    openingHoursSpecification: [
+      {
+        "@type": "OpeningHoursSpecification",
+        dayOfWeek: ["Tuesday", "Wednesday", "Thursday", "Friday"],
+        opens: "10:00",
+        closes: "18:00",
+      },
+      {
+        "@type": "OpeningHoursSpecification",
+        dayOfWeek: "Saturday",
+        opens: "10:00",
+        closes: "15:00",
+      },
+    ],
+  };
+
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
         {children}
       </body>
     </html>
