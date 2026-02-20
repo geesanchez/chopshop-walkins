@@ -23,6 +23,7 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://thechopshopwatsonville.com"),
+  alternates: { canonical: "/" },
   title: "The Chop Shop — Walk-in Queue",
   description: "Walk-in queue management for The Chop Shop, Watsonville CA. Join the line from anywhere!",
   openGraph: {
