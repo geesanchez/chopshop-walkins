@@ -84,3 +84,7 @@ export async function setActiveBarbers(settingsId: string, count: number) {
 export async function setQueueCap(settingsId: string, cap: number) {
   await staffAction("set-queue-cap", { settingsId, cap });
 }
+
+export async function autoCleanup() {
+  await staffAction("auto-cleanup", {});
+}

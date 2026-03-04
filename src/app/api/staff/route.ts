@@ -126,6 +126,17 @@ export async function POST(request: NextRequest) {
         .eq("id", settingsId);
 
       if (dbError) return NextResponse.json({ error: dbError.message }, { status: 500 });
+
+      // When closing the shop, clear all active queue entries
+      if (!isOpen) {
+        const now = new Date().toISOString();
+
+        await supabase
+          .from("queue_entries")
+          .update({ status: "removed", completed_at: now })
+          .in("status", ["waiting", "in_progress"]);
+      }
+
       return NextResponse.json({ success: true });
     }
 
@@ -164,6 +175,48 @@ export async function POST(request: NextRequest) {
 
       if (dbError) return NextResponse.json({ error: dbError.message }, { status: 500 });
       return NextResponse.json({ success: true });
+    }
+
+    case "auto-cleanup": {
+      const now = new Date().toISOString();
+      const waitingCutoff = new Date(Date.now() - 120 * 60 * 1000).toISOString();
+
+      // Remove waiting entries older than 2 hours
+      const { data: waitingExpired } = await supabase
+        .from("queue_entries")
+        .update({ status: "removed", completed_at: now })
+        .eq("status", "waiting")
+        .lt("created_at", waitingCutoff)
+        .select("id");
+
+      // Auto-complete in_progress entries past 2x their service duration
+      const { data: inProgress } = await supabase
+        .from("queue_entries")
+        .select("id, called_at, services(duration_minutes)")
+        .eq("status", "in_progress")
+        .not("called_at", "is", null);
+
+      let overdueCompleted = 0;
+      if (inProgress) {
+        for (const entry of inProgress) {
+          const duration = (entry.services as unknown as { duration_minutes: number })?.duration_minutes ?? 45;
+          const calledAt = new Date(entry.called_at!).getTime();
+          const elapsed = (Date.now() - calledAt) / 60000;
+
+          if (elapsed > duration * 2) {
+            await supabase
+              .from("queue_entries")
+              .update({ status: "completed", completed_at: now })
+              .eq("id", entry.id);
+            overdueCompleted++;
+          }
+        }
+      }
+
+      return NextResponse.json({
+        waitingExpired: waitingExpired?.length ?? 0,
+        overdueCompleted,
+      });
     }
 
     default:

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQueue } from "@/hooks/use-queue";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +31,7 @@ import {
   toggleShopOpen,
   setActiveBarbers,
   setQueueCap,
+  autoCleanup,
 } from "@/lib/queue-actions";
 import { ChangePinDialog } from "@/components/change-pin-dialog";
 import type { QueueEntryWithService } from "@/lib/supabase/types";
@@ -48,6 +49,15 @@ export function StaffDashboard() {
     useState<QueueEntryWithService | null>(null);
   const [skippingEntry, setSkippingEntry] =
     useState<QueueEntryWithService | null>(null);
+  const [showCloseConfirm, setShowCloseConfirm] = useState(false);
+
+  // Run auto-cleanup every 60 seconds to expire stale entries
+  useEffect(() => {
+    const interval = setInterval(() => {
+      autoCleanup().catch(() => {});
+    }, 60_000);
+    return () => clearInterval(interval);
+  }, []);
 
   if (loading && !error) {
     return (
@@ -143,12 +153,16 @@ export function StaffDashboard() {
             Change PIN
           </Button>
           <Button
-            onClick={() =>
-              handleAction(
-                () => toggleShopOpen(shopSettings.id, !shopSettings.is_open),
-                "toggle"
-              )
-            }
+            onClick={() => {
+              if (shopSettings.is_open && activeCount > 0) {
+                setShowCloseConfirm(true);
+              } else {
+                handleAction(
+                  () => toggleShopOpen(shopSettings.id, !shopSettings.is_open),
+                  "toggle"
+                );
+              }
+            }}
             disabled={actionLoading === "toggle"}
             className={
               shopSettings.is_open
@@ -302,31 +316,51 @@ export function StaffDashboard() {
             In Chair
           </h2>
           <div className="grid gap-3">
-            {inProgressEntries.map((entry) => (
-              <Card key={entry.id} className="bg-card border-gold/30">
-                <CardContent className="flex items-center justify-between p-4">
-                  <div>
-                    <p className="font-semibold text-lg">
-                      {entry.customer_name}
-                    </p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Badge variant="secondary" className="text-xs">
-                        {entry.services?.name}
-                      </Badge>
-                      <Badge className="bg-gold/20 text-gold border-gold/30 text-xs">
-                        In Progress
-                      </Badge>
+            {inProgressEntries.map((entry) => {
+              const duration = entry.services?.duration_minutes ?? 45;
+              const elapsedMin = entry.called_at
+                ? (Date.now() - new Date(entry.called_at).getTime()) / 60000
+                : 0;
+              const isOverdue = elapsedMin > duration;
+
+              return (
+                <Card key={entry.id} className={`bg-card ${isOverdue ? "border-yellow-500/60" : "border-gold/30"}`}>
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-semibold text-lg">
+                          {entry.customer_name}
+                        </p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge variant="secondary" className="text-xs">
+                            {entry.services?.name}
+                          </Badge>
+                          <Badge className="bg-gold/20 text-gold border-gold/30 text-xs">
+                            In Progress
+                          </Badge>
+                          <span className="text-xs text-muted-foreground">
+                            {Math.floor(elapsedMin)} min
+                          </span>
+                        </div>
+                      </div>
+                      <Button
+                        onClick={() => setCompletingEntry(entry)}
+                        className="bg-green-600 hover:bg-green-700 text-white"
+                      >
+                        Done
+                      </Button>
                     </div>
-                  </div>
-                  <Button
-                    onClick={() => setCompletingEntry(entry)}
-                    className="bg-green-600 hover:bg-green-700 text-white"
-                  >
-                    Done
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
+                    {isOverdue && (
+                      <div className="mt-3 p-2 rounded-md bg-yellow-500/10 border border-yellow-500/30">
+                        <p className="text-yellow-500 text-xs font-medium">
+                          Over expected time ({duration} min) — mark as done?
+                        </p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         </div>
       )}
@@ -528,6 +562,35 @@ export function StaffDashboard() {
               }}
             >
               {actionLoading === "remove" ? "Removing..." : "Remove"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      {/* Close Shop Confirmation Dialog */}
+      <AlertDialog
+        open={showCloseConfirm}
+        onOpenChange={() => setShowCloseConfirm(false)}
+      >
+        <AlertDialogContent className="bg-card border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Close the shop?</AlertDialogTitle>
+            <AlertDialogDescription>
+              There {activeCount === 1 ? "is" : "are"} still <span className="font-semibold text-foreground">{activeCount} {activeCount === 1 ? "person" : "people"}</span> in the queue. Closing the shop will <span className="font-semibold text-destructive">remove all entries</span> from the queue.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="border-border">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700 text-white"
+              disabled={actionLoading === "toggle"}
+              onClick={() => {
+                handleAction(
+                  () => toggleShopOpen(shopSettings.id, false),
+                  "toggle"
+                ).then(() => setShowCloseConfirm(false));
+              }}
+            >
+              {actionLoading === "toggle" ? "Closing..." : "Close Shop"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -136,12 +136,12 @@ export function useQueue() {
     // Sum durations of people AHEAD only (not including self)
     let totalMinutes = 0;
     for (let i = 0; i < index; i++) {
-      totalMinutes += waitingEntries[i].services?.duration_minutes ?? 30;
+      totalMinutes += waitingEntries[i].services?.duration_minutes ?? 45;
     }
 
     // Add actual remaining time for people currently in the chair
     for (const entry of inProgressEntries) {
-      const duration = entry.services?.duration_minutes ?? 30;
+      const duration = entry.services?.duration_minutes ?? 45;
       if (entry.called_at) {
         const elapsedMin = (Date.now() - new Date(entry.called_at).getTime()) / 60000;
         totalMinutes += Math.max(0, Math.ceil(duration - elapsedMin));
