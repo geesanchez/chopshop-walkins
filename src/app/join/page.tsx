@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     title: "Join the Walk-in Queue — The Chop Shop",
     description:
       "Get in line from anywhere. Walk-in queue for The Chop Shop barbershop in Watsonville, CA.",
-    url: "https://thechopshopwatsonville.com/join",
+    url: "https://queue.thechopshopwatsonville.com/join",
     siteName: "The Chop Shop",
     images: [{ url: "/logo.jpeg", width: 500, height: 500 }],
     type: "website",

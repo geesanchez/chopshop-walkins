@@ -22,7 +22,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://thechopshopwatsonville.com"),
+  metadataBase: new URL("https://queue.thechopshopwatsonville.com"),
   alternates: { canonical: "/" },
   title: "The Chop Shop — Walk-in Queue",
   description: "Walk-in queue management for The Chop Shop, Watsonville CA. Join the line from anywhere!",
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     title: "The Chop Shop",
     description: "Walk-in queue — join the line from anywhere",
     siteName: "The Chop Shop",
-    url: "https://thechopshopwatsonville.com",
+    url: "https://queue.thechopshopwatsonville.com",
     images: [{ url: "/logo.jpeg", width: 500, height: 500 }],
     type: "website",
   },

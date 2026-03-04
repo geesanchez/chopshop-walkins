@@ -9,6 +9,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/api/", "/kiosk", "/staff", "/display"],
       },
     ],
-    sitemap: "https://thechopshopwatsonville.com/sitemap.xml",
+    sitemap: "https://queue.thechopshopwatsonville.com/sitemap.xml",
   };
 }

@@ -11,5 +11,5 @@ export const SHOP = {
     short: "Tue–Fri 10AM–6PM · Sat 10AM–3PM",
   },
   bookingUrl: "https://booksy.com/en-us/dl/show-business/1482098",
-  domain: "https://thechopshopwatsonville.com",
+  domain: "https://queue.thechopshopwatsonville.com",
 } as const;
