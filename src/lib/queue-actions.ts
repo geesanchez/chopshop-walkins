@@ -80,3 +80,7 @@ export async function toggleShopOpen(settingsId: string, isOpen: boolean) {
 export async function setActiveBarbers(settingsId: string, count: number) {
   await staffAction("set-barbers", { settingsId, count });
 }
+
+export async function setQueueCap(settingsId: string, cap: number) {
+  await staffAction("set-queue-cap", { settingsId, cap });
+}

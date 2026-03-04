@@ -129,6 +129,26 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true });
     }
 
+    case "set-queue-cap": {
+      const { settingsId, cap } = body as {
+        settingsId: string;
+        cap: number;
+      };
+      if (cap < 1 || cap > 30) {
+        return NextResponse.json({ error: "Queue cap must be between 1 and 30" }, { status: 400 });
+      }
+      const { error: dbError } = await supabase
+        .from("shop_settings")
+        .update({
+          queue_cap: cap,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", settingsId);
+
+      if (dbError) return NextResponse.json({ error: dbError.message }, { status: 500 });
+      return NextResponse.json({ success: true });
+    }
+
     case "set-barbers": {
       const { settingsId, count } = body as {
         settingsId: string;

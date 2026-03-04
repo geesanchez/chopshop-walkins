@@ -30,6 +30,7 @@ import {
   markArrived,
   toggleShopOpen,
   setActiveBarbers,
+  setQueueCap,
 } from "@/lib/queue-actions";
 import { ChangePinDialog } from "@/components/change-pin-dialog";
 import type { QueueEntryWithService } from "@/lib/supabase/types";
@@ -225,6 +226,64 @@ export function StaffDashboard() {
                       shopSettings.active_barbers + 1
                     ),
                   "barbers"
+                )
+              }
+            >
+              +
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="mb-6 bg-card border-border">
+        <CardContent className="flex items-center justify-between p-4">
+          <div>
+            <p className="font-medium">Queue capacity</p>
+            <p className="text-sm text-muted-foreground">
+              Max walk-ins allowed in line
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-10 w-10 text-lg border-border"
+              disabled={
+                shopSettings.queue_cap <= 1 ||
+                actionLoading === "queue-cap"
+              }
+              onClick={() =>
+                handleAction(
+                  () =>
+                    setQueueCap(
+                      shopSettings.id,
+                      shopSettings.queue_cap - 1
+                    ),
+                  "queue-cap"
+                )
+              }
+            >
+              -
+            </Button>
+            <span className="text-2xl font-bold text-gold w-8 text-center">
+              {shopSettings.queue_cap}
+            </span>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-10 w-10 text-lg border-border"
+              disabled={
+                shopSettings.queue_cap >= 30 ||
+                actionLoading === "queue-cap"
+              }
+              onClick={() =>
+                handleAction(
+                  () =>
+                    setQueueCap(
+                      shopSettings.id,
+                      shopSettings.queue_cap + 1
+                    ),
+                  "queue-cap"
                 )
               }
             >

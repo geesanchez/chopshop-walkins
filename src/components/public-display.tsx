@@ -155,35 +155,41 @@ export function PublicDisplay() {
               </p>
             </div>
           ) : (
-            <div className="space-y-3">
-              {waitingEntries.map((entry, index) => (
+            <div className="space-y-2">
+              {waitingEntries.map((entry, index) => {
+                const compact = waitingEntries.length > 5;
+                return (
                   <div
                     key={entry.id}
-                    className={`rounded-xl border p-5 flex items-center justify-between ${
+                    className={`rounded-xl border flex items-center justify-between ${
+                      compact ? "p-3" : "p-5"
+                    } ${
                       index === 0
                         ? "border-gold/50 bg-card"
                         : "border-border bg-card/50"
                     }`}
                   >
-                    <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-4">
                       <span
-                        className={`text-5xl font-bold w-16 text-center ${
+                        className={`font-bold w-12 text-center ${
+                          compact ? "text-3xl" : "text-5xl w-16"
+                        } ${
                           index === 0 ? "text-gold" : "text-muted-foreground"
                         }`}
                       >
                         {index + 1}
                       </span>
                       <div>
-                        <p className="text-3xl font-semibold">
+                        <p className={`font-semibold ${compact ? "text-xl" : "text-3xl"}`}>
                           {entry.customer_name}
                         </p>
-                        <div className="flex items-center gap-3 mt-1">
-                          <span className="text-lg text-muted-foreground">
+                        <div className="flex items-center gap-3 mt-0.5">
+                          <span className={`text-muted-foreground ${compact ? "text-sm" : "text-lg"}`}>
                             {entry.services?.name}
                           </span>
                           {entry.source === "remote" &&
                             entry.arrival_status === "on_my_way" && (
-                              <Badge className="bg-yellow-500/20 text-yellow-500 border-yellow-500/30 text-sm">
+                              <Badge className={`bg-yellow-500/20 text-yellow-500 border-yellow-500/30 ${compact ? "text-xs" : "text-sm"}`}>
                                 On My Way
                               </Badge>
                             )}
@@ -191,18 +197,19 @@ export function PublicDisplay() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-2xl font-bold">
+                      <p className={`font-bold ${compact ? "text-lg" : "text-2xl"}`}>
                         <WaitCountdown
                           estimateMinutes={estimateWait(entry.id)}
                           position={index + 1}
                         />
                       </p>
-                      <p className="text-sm text-muted-foreground">
+                      <p className={`text-muted-foreground ${compact ? "text-xs" : "text-sm"}`}>
                         est. wait
                       </p>
                     </div>
                   </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
