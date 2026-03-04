@@ -1,31 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
-import { hashPin, verifyPin } from "@/lib/pin-hash";
-import { createHash, randomBytes } from "crypto";
+import { hashPin, verifyPin, createSessionToken, verifySessionToken } from "@/lib/pin-hash";
 
 const MAX_ATTEMPTS = 10;
 const WINDOW_MINUTES = 15;
-
-// Generate a session token signed with a server secret
-function createSessionToken(): string {
-  const token = randomBytes(32).toString("hex");
-  const secret = process.env.STAFF_PIN || "fallback-secret";
-  const signature = createHash("sha256")
-    .update(token + secret)
-    .digest("hex");
-  return `${token}.${signature}`;
-}
-
-export function verifySessionToken(token: string): boolean {
-  const parts = token.split(".");
-  if (parts.length !== 2) return false;
-  const [raw, sig] = parts;
-  const secret = process.env.STAFF_PIN || "fallback-secret";
-  const expected = createHash("sha256")
-    .update(raw + secret)
-    .digest("hex");
-  return sig === expected;
-}
 
 function getClientIp(request: NextRequest): string {
   return (

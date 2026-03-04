@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifySessionToken } from "@/app/api/verify-pin/route";
+import { verifySessionToken } from "@/lib/pin-hash";
 
 // Verifies staff session cookie and returns parsed body
 export async function verifyStaffRequest(

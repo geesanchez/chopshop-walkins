@@ -102,15 +102,9 @@ export function useQueue() {
       fetchShopSettings();
     }, 10_000);
 
-    // Cleanup expired "on my way" entries every 30 seconds
-    const cleanupInterval = setInterval(() => {
-      fetch("/api/cleanup").catch(() => {});
-    }, 30_000);
-
     return () => {
       supabase.removeChannel(queueChannel);
       clearInterval(pollInterval);
-      clearInterval(cleanupInterval);
     };
   }, [fetchQueue, fetchServices, fetchBarbers, fetchShopSettings]);
 

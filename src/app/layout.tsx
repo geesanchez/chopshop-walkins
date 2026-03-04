@@ -26,6 +26,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://queue.thechopshopwatsonville.com"),
   alternates: { canonical: "/" },
   title: "The Chop Shop — Walk-in Queue",
+  other: { "theme-color": "#0A0A0A" },
   description: "Walk-in queue management for The Chop Shop, Watsonville CA. Join the line from anywhere!",
   openGraph: {
     title: "The Chop Shop",

@@ -230,10 +230,11 @@ export function KioskForm() {
       {/* Step 1: Name */}
       {step === "name" && (
         <div className="w-full max-w-md space-y-4">
-          <label className="text-sm font-medium text-muted-foreground">
+          <label htmlFor="kiosk-name" className="text-sm font-medium text-muted-foreground">
             What&apos;s your name?
           </label>
           <Input
+            id="kiosk-name"
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Enter your name"

@@ -4,7 +4,7 @@ import { SHOP } from "@/lib/shop-config";
 
 export default function Home() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-8 p-8">
+    <main className="min-h-screen flex flex-col items-center justify-center gap-8 p-8">
       <Image
         src="/logo.jpeg"
         alt="The Chop Shop"
@@ -68,6 +68,6 @@ export default function Home() {
         </p>
         <p>{SHOP.hours.short}</p>
       </footer>
-    </div>
+    </main>
   );
 }
