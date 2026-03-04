@@ -6,6 +6,22 @@ const client = twilio(
   process.env.TWILIO_AUTH_TOKEN
 );
 
+// Simple in-memory rate limit: max 3 SMS per phone per 15 minutes
+const smsAttempts = new Map<string, { count: number; resetAt: number }>();
+const SMS_LIMIT = 3;
+const SMS_WINDOW_MS = 15 * 60 * 1000;
+
+function isRateLimited(phone: string): boolean {
+  const now = Date.now();
+  const entry = smsAttempts.get(phone);
+  if (!entry || now > entry.resetAt) {
+    smsAttempts.set(phone, { count: 1, resetAt: now + SMS_WINDOW_MS });
+    return false;
+  }
+  entry.count++;
+  return entry.count > SMS_LIMIT;
+}
+
 export async function POST(request: NextRequest) {
   const { phone } = await request.json();
 
@@ -24,6 +40,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { error: "Enter a valid 10-digit US phone number" },
       { status: 400 }
+    );
+  }
+
+  if (isRateLimited(e164)) {
+    return NextResponse.json(
+      { error: "Too many attempts. Try again in 15 minutes." },
+      { status: 429 }
     );
   }
 
