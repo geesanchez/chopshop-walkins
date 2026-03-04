@@ -39,11 +39,16 @@ export function useCountdown(estimateMinutes: number) {
   const isUnderOneMinute = remainingSeconds > 0 && remainingSeconds < 60;
   const isExpired = remainingSeconds === 0;
 
+  const hours = Math.floor(minutes / 60);
+  const displayMinutes = minutes % 60;
+
   let display: string;
   if (isExpired) {
     display = "0:00";
   } else if (isUnderOneMinute) {
     display = `0:${seconds.toString().padStart(2, "0")}`;
+  } else if (hours > 0) {
+    display = displayMinutes > 0 ? `~${hours} hr ${displayMinutes} min` : `~${hours} hr`;
   } else {
     display = `~${minutes} min`;
   }
