@@ -1,19 +1,72 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import twilio from "twilio";
 import { verifyStaffRequest } from "@/lib/staff-auth";
 import { createServiceClient } from "@/lib/supabase/server";
+
+const CallSchema = z.object({ action: z.literal("call"), entryId: z.string().uuid() });
+const CompleteSchema = z.object({
+  action: z.literal("complete"),
+  entryId: z.string().uuid(),
+  barberId: z.string().uuid(),
+  customerName: z.string().min(1).max(100),
+  serviceId: z.string().uuid(),
+  source: z.string().min(1).max(20),
+  calledAt: z.string().nullable(),
+});
+const EntryActionSchema = z.object({
+  action: z.enum(["skip", "remove", "mark-arrived"]),
+  entryId: z.string().uuid(),
+});
+const ToggleShopSchema = z.object({
+  action: z.literal("toggle-shop"),
+  settingsId: z.string().uuid(),
+  isOpen: z.boolean(),
+});
+const SetQueueCapSchema = z.object({
+  action: z.literal("set-queue-cap"),
+  settingsId: z.string().uuid(),
+  cap: z.number().int().min(1).max(30),
+});
+const SetBarbersSchema = z.object({
+  action: z.literal("set-barbers"),
+  settingsId: z.string().uuid(),
+  count: z.number().int().min(1).max(10),
+});
+const AutoCleanupSchema = z.object({ action: z.literal("auto-cleanup") });
+
+const StaffActionSchema = z.discriminatedUnion("action", [
+  CallSchema,
+  CompleteSchema,
+  EntryActionSchema.extend({ action: z.literal("skip") }),
+  EntryActionSchema.extend({ action: z.literal("remove") }),
+  EntryActionSchema.extend({ action: z.literal("mark-arrived") }),
+  ToggleShopSchema,
+  SetQueueCapSchema,
+  SetBarbersSchema,
+  AutoCleanupSchema,
+]);
+
+function dbErr(action: string, err: unknown) {
+  const msg = err instanceof Error ? err.message : String(err);
+  console.error(`[staff/${action}] DB error: ${msg}`);
+  return NextResponse.json({ error: "Something went wrong. Please try again." }, { status: 500 });
+}
 
 export async function POST(request: NextRequest) {
   const { error, body } = await verifyStaffRequest(request);
   if (error) return error;
 
-  const action = body!.action as string;
+  const parsed = StaffActionSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+  }
+
+  const data = parsed.data;
   const supabase = createServiceClient();
 
-  switch (action) {
+  switch (data.action) {
     case "call": {
-      const { entryId } = body as { entryId: string };
-
       // Check barber availability before calling
       const { count: inProgressCount } = await supabase
         .from("queue_entries")
@@ -33,17 +86,17 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      const { data: updatedEntry, error: dbError } = await supabase
+      const { data: updatedEntry, error: updateErr } = await supabase
         .from("queue_entries")
         .update({
           status: "in_progress",
           called_at: new Date().toISOString(),
         })
-        .eq("id", entryId)
+        .eq("id", data.entryId)
         .select("customer_name, phone")
         .single();
 
-      if (dbError) return NextResponse.json({ error: dbError.message }, { status: 500 });
+      if (updateErr) return dbErr("call", updateErr);
 
       // Send SMS notification if customer has a phone number
       if (updatedEntry?.phone && process.env.TWILIO_PHONE_NUMBER) {
@@ -58,7 +111,8 @@ export async function POST(request: NextRequest) {
             body: `Hey ${updatedEntry.customer_name}! You're up next at The Chop Shop. Head to the chair!`,
           });
         } catch (smsErr) {
-          console.error("SMS notification failed:", smsErr);
+          const msg = smsErr instanceof Error ? smsErr.message : "Unknown error";
+          console.error(`[staff/call] SMS failed: ${msg}`);
         }
       }
 
@@ -66,92 +120,72 @@ export async function POST(request: NextRequest) {
     }
 
     case "complete": {
-      const { entryId, barberId, customerName, serviceId, source, calledAt } =
-        body as {
-          entryId: string;
-          barberId: string;
-          customerName: string;
-          serviceId: string;
-          source: string;
-          calledAt: string | null;
-        };
-
-      const { error: updateError } = await supabase
+      const { error: updateErr } = await supabase
         .from("queue_entries")
         .update({
           status: "completed",
-          assigned_barber_id: barberId,
+          assigned_barber_id: data.barberId,
           completed_at: new Date().toISOString(),
         })
-        .eq("id", entryId);
+        .eq("id", data.entryId);
 
-      if (updateError)
-        return NextResponse.json({ error: updateError.message }, { status: 500 });
+      if (updateErr) return dbErr("complete", updateErr);
 
-      const { error: historyError } = await supabase.from("cut_history").insert({
-        customer_name: customerName,
-        service_id: serviceId,
-        barber_id: barberId,
-        source,
-        started_at: calledAt,
+      const { error: historyErr } = await supabase.from("cut_history").insert({
+        customer_name: data.customerName,
+        service_id: data.serviceId,
+        barber_id: data.barberId,
+        source: data.source,
+        started_at: data.calledAt,
         completed_at: new Date().toISOString(),
       });
 
-      if (historyError)
-        return NextResponse.json({ error: historyError.message }, { status: 500 });
+      if (historyErr) return dbErr("complete/history", historyErr);
 
       return NextResponse.json({ success: true });
     }
 
     case "skip": {
-      const { entryId } = body as { entryId: string };
-      const { error: dbError } = await supabase
+      const { error: e } = await supabase
         .from("queue_entries")
         .update({ status: "skipped" })
-        .eq("id", entryId);
+        .eq("id", data.entryId);
 
-      if (dbError) return NextResponse.json({ error: dbError.message }, { status: 500 });
+      if (e) return dbErr("skip", e);
       return NextResponse.json({ success: true });
     }
 
     case "remove": {
-      const { entryId } = body as { entryId: string };
-      const { error: dbError } = await supabase
+      const { error: e } = await supabase
         .from("queue_entries")
         .update({ status: "removed" })
-        .eq("id", entryId);
+        .eq("id", data.entryId);
 
-      if (dbError) return NextResponse.json({ error: dbError.message }, { status: 500 });
+      if (e) return dbErr("remove", e);
       return NextResponse.json({ success: true });
     }
 
     case "mark-arrived": {
-      const { entryId } = body as { entryId: string };
-      const { error: dbError } = await supabase
+      const { error: e } = await supabase
         .from("queue_entries")
         .update({ arrival_status: "here" })
-        .eq("id", entryId);
+        .eq("id", data.entryId);
 
-      if (dbError) return NextResponse.json({ error: dbError.message }, { status: 500 });
+      if (e) return dbErr("mark-arrived", e);
       return NextResponse.json({ success: true });
     }
 
     case "toggle-shop": {
-      const { settingsId, isOpen } = body as {
-        settingsId: string;
-        isOpen: boolean;
-      };
-      const { error: dbError } = await supabase
+      const { error: e } = await supabase
         .from("shop_settings")
-        .update({ is_open: isOpen, updated_at: new Date().toISOString() })
-        .eq("id", settingsId);
+        .update({ is_open: data.isOpen, updated_at: new Date().toISOString() })
+        .eq("id", data.settingsId);
 
-      if (dbError) return NextResponse.json({ error: dbError.message }, { status: 500 });
+      if (e) return dbErr("toggle-shop", e);
 
       // When closing the shop, clear all active queue entries
-      if (!isOpen) {
+      if (!data.isOpen) {
         const now = new Date().toISOString();
-
         await supabase
           .from("queue_entries")
           .update({ status: "removed", completed_at: now })
@@ -162,39 +196,28 @@ export async function POST(request: NextRequest) {
     }
 
     case "set-queue-cap": {
-      const { settingsId, cap } = body as {
-        settingsId: string;
-        cap: number;
-      };
-      if (cap < 1 || cap > 30) {
-        return NextResponse.json({ error: "Queue cap must be between 1 and 30" }, { status: 400 });
-      }
-      const { error: dbError } = await supabase
+      const { error: e } = await supabase
         .from("shop_settings")
         .update({
-          queue_cap: cap,
+          queue_cap: data.cap,
           updated_at: new Date().toISOString(),
         })
-        .eq("id", settingsId);
+        .eq("id", data.settingsId);
 
-      if (dbError) return NextResponse.json({ error: dbError.message }, { status: 500 });
+      if (e) return dbErr("set-queue-cap", e);
       return NextResponse.json({ success: true });
     }
 
     case "set-barbers": {
-      const { settingsId, count } = body as {
-        settingsId: string;
-        count: number;
-      };
-      const { error: dbError } = await supabase
+      const { error: e } = await supabase
         .from("shop_settings")
         .update({
-          active_barbers: count,
+          active_barbers: data.count,
           updated_at: new Date().toISOString(),
         })
-        .eq("id", settingsId);
+        .eq("id", data.settingsId);
 
-      if (dbError) return NextResponse.json({ error: dbError.message }, { status: 500 });
+      if (e) return dbErr("set-barbers", e);
       return NextResponse.json({ success: true });
     }
 

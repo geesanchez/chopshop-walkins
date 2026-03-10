@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import twilio from "twilio";
 import { createServiceClient } from "@/lib/supabase/server";
 
@@ -9,6 +10,10 @@ const client = twilio(
 
 const SMS_LIMIT = 3;
 const SMS_WINDOW_MINUTES = 15;
+
+const SendCodeSchema = z.object({
+  phone: z.string().min(1).max(20),
+});
 
 async function isRateLimited(
   supabase: ReturnType<typeof createServiceClient>,
@@ -56,9 +61,10 @@ async function recordAttempt(
 }
 
 export async function POST(request: NextRequest) {
-  const { phone } = await request.json();
+  const body = await request.json();
+  const parsed = SendCodeSchema.safeParse(body);
 
-  if (!phone || typeof phone !== "string") {
+  if (!parsed.success) {
     return NextResponse.json(
       { error: "Phone number required" },
       { status: 400 }
@@ -66,7 +72,7 @@ export async function POST(request: NextRequest) {
   }
 
   // Normalize: strip non-digits, ensure +1 prefix for US numbers
-  const digits = phone.replace(/\D/g, "");
+  const digits = parsed.data.phone.replace(/\D/g, "");
   const e164 = digits.startsWith("1") ? `+${digits}` : `+1${digits}`;
 
   if (e164.length !== 12) {
@@ -97,7 +103,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, phone: e164 });
   } catch (err) {
-    console.error("Twilio send error:", err);
+    const msg = err instanceof Error ? err.message : "Unknown error";
+    console.error(`[send-code] Twilio error: ${msg}`);
     return NextResponse.json(
       { error: "Failed to send verification code. Try again." },
       { status: 500 }

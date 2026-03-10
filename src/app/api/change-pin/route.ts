@@ -1,22 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { createServiceClient } from "@/lib/supabase/server";
 import { hashPin, verifyPin } from "@/lib/pin-hash";
 import { verifyStaffRequest } from "@/lib/staff-auth";
+
+const ChangePinSchema = z.object({
+  currentPin: z.string().min(1).max(20),
+  newPin: z.string().min(4).max(20),
+});
 
 export async function POST(request: NextRequest) {
   const { error: authError, body } = await verifyStaffRequest(request);
   if (authError) return authError;
 
-  const { currentPin, newPin } = body as { currentPin: string; newPin: string };
-
-  if (!currentPin || !newPin || typeof currentPin !== "string" || typeof newPin !== "string") {
-    return NextResponse.json({ error: "Current and new PIN required" }, { status: 400 });
+  const parsed = ChangePinSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json({ error: "Current and new PIN required (min 4 digits)" }, { status: 400 });
   }
 
-  if (newPin.length < 4) {
-    return NextResponse.json({ error: "PIN must be at least 4 digits" }, { status: 400 });
-  }
-
+  const { currentPin, newPin } = parsed.data;
   const supabase = createServiceClient();
   const { data } = await supabase
     .from("shop_settings")
@@ -43,6 +45,7 @@ export async function POST(request: NextRequest) {
     .not("id", "is", null);
 
   if (error) {
+    console.error(`[change-pin] DB error: ${error.message}`);
     return NextResponse.json({ error: "Failed to update PIN" }, { status: 500 });
   }
 

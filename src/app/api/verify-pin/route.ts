@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { createServiceClient } from "@/lib/supabase/server";
 import { hashPin, verifyPin, createSessionToken, verifySessionToken } from "@/lib/pin-hash";
 
 const MAX_ATTEMPTS = 10;
 const WINDOW_MINUTES = 15;
+
+const PinSchema = z.object({
+  pin: z.string().min(1).max(20),
+});
 
 function getClientIp(request: NextRequest): string {
   return (
@@ -74,15 +79,17 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const { pin } = await request.json();
+  const body = await request.json();
+  const parsed = PinSchema.safeParse(body);
 
-  if (!pin || typeof pin !== "string") {
+  if (!parsed.success) {
     return NextResponse.json(
       { success: false, error: "PIN required" },
       { status: 400 }
     );
   }
 
+  const { pin } = parsed.data;
   const supabase = createServiceClient();
   const ip = getClientIp(request);
 
