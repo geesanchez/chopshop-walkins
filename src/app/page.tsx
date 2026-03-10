@@ -67,6 +67,11 @@ export default function Home() {
           </a>
         </p>
         <p>{SHOP.hours.short}</p>
+        <p className="mt-3">
+          <Link href="/privacy" className="hover:text-gold transition-colors">Privacy</Link>
+          {" · "}
+          <Link href="/terms" className="hover:text-gold transition-colors">Terms</Link>
+        </p>
       </footer>
     </main>
   );
