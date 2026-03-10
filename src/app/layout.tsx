@@ -20,6 +20,7 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: "cover",
+  themeColor: "#0A0A0A",
 };
 
 export const metadata: Metadata = {
@@ -29,7 +30,6 @@ export const metadata: Metadata = {
     default: "The Chop Shop — Walk-in Queue",
     template: "%s | The Chop Shop",
   },
-  themeColor: "#0A0A0A",
   description: "Walk-in queue management for The Chop Shop, Watsonville CA. Join the line from anywhere!",
   openGraph: {
     title: "The Chop Shop",
