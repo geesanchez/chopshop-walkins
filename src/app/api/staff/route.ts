@@ -52,17 +52,14 @@ export async function POST(request: NextRequest) {
             process.env.TWILIO_ACCOUNT_SID,
             process.env.TWILIO_AUTH_TOKEN
           );
-          const smsResult = await twilioClient.messages.create({
+          await twilioClient.messages.create({
             to: updatedEntry.phone,
             from: process.env.TWILIO_PHONE_NUMBER,
             body: `Hey ${updatedEntry.customer_name}! You're up next at The Chop Shop. Head to the chair!`,
           });
-          console.log("SMS sent:", smsResult.sid);
         } catch (smsErr) {
           console.error("SMS notification failed:", smsErr);
         }
-      } else {
-        console.log("SMS skipped — phone:", updatedEntry?.phone, "from:", process.env.TWILIO_PHONE_NUMBER ? "set" : "missing");
       }
 
       return NextResponse.json({ success: true });
