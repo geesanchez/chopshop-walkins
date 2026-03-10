@@ -1,25 +1,58 @@
 import { NextRequest, NextResponse } from "next/server";
 import twilio from "twilio";
+import { createServiceClient } from "@/lib/supabase/server";
 
 const client = twilio(
   process.env.TWILIO_ACCOUNT_SID,
   process.env.TWILIO_AUTH_TOKEN
 );
 
-// Simple in-memory rate limit: max 3 SMS per phone per 15 minutes
-const smsAttempts = new Map<string, { count: number; resetAt: number }>();
 const SMS_LIMIT = 3;
-const SMS_WINDOW_MS = 15 * 60 * 1000;
+const SMS_WINDOW_MINUTES = 15;
 
-function isRateLimited(phone: string): boolean {
-  const now = Date.now();
-  const entry = smsAttempts.get(phone);
-  if (!entry || now > entry.resetAt) {
-    smsAttempts.set(phone, { count: 1, resetAt: now + SMS_WINDOW_MS });
-    return false;
+async function isRateLimited(
+  supabase: ReturnType<typeof createServiceClient>,
+  phone: string
+): Promise<boolean> {
+  const windowStart = new Date(
+    Date.now() - SMS_WINDOW_MINUTES * 60 * 1000
+  ).toISOString();
+
+  const { data } = await supabase
+    .from("sms_attempts")
+    .select("count, window_start")
+    .eq("phone", phone)
+    .single();
+
+  if (!data) return false;
+  if (new Date(data.window_start).toISOString() < windowStart) return false;
+  return data.count >= SMS_LIMIT;
+}
+
+async function recordAttempt(
+  supabase: ReturnType<typeof createServiceClient>,
+  phone: string
+): Promise<void> {
+  const windowStart = new Date(
+    Date.now() - SMS_WINDOW_MINUTES * 60 * 1000
+  ).toISOString();
+
+  const { data } = await supabase
+    .from("sms_attempts")
+    .select("count, window_start")
+    .eq("phone", phone)
+    .single();
+
+  if (!data || new Date(data.window_start).toISOString() < windowStart) {
+    await supabase
+      .from("sms_attempts")
+      .upsert({ phone, count: 1, window_start: new Date().toISOString() });
+  } else {
+    await supabase
+      .from("sms_attempts")
+      .update({ count: data.count + 1 })
+      .eq("phone", phone);
   }
-  entry.count++;
-  return entry.count > SMS_LIMIT;
 }
 
 export async function POST(request: NextRequest) {
@@ -43,12 +76,16 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  if (isRateLimited(e164)) {
+  const supabase = createServiceClient();
+
+  if (await isRateLimited(supabase, e164)) {
     return NextResponse.json(
       { error: "Too many attempts. Try again in 15 minutes." },
       { status: 429 }
     );
   }
+
+  await recordAttempt(supabase, e164);
 
   try {
     await client.verify.v2

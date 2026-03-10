@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
 import { hashPin, verifyPin } from "@/lib/pin-hash";
+import { verifyStaffRequest } from "@/lib/staff-auth";
 
 export async function POST(request: NextRequest) {
-  const { currentPin, newPin } = await request.json();
+  const { error: authError, body } = await verifyStaffRequest(request);
+  if (authError) return authError;
+
+  const { currentPin, newPin } = body as { currentPin: string; newPin: string };
 
   if (!currentPin || !newPin || typeof currentPin !== "string" || typeof newPin !== "string") {
     return NextResponse.json({ error: "Current and new PIN required" }, { status: 400 });
