@@ -46,6 +46,7 @@ create table public.queue_entries (
   arrival_status public.arrival_status default 'here',
   position integer not null,
   source text not null default 'kiosk', -- 'kiosk' or 'remote'
+  phone text, -- optional, for SMS notifications (remote joins)
   assigned_barber_id uuid references public.barbers(id),
   created_at timestamptz default now(),
   called_at timestamptz,
@@ -75,9 +76,9 @@ create index idx_cut_history_completed on public.cut_history(completed_at);
 
 -- ============================================================
 -- ROW LEVEL SECURITY
--- All tables are readable by anon (public displays need this).
--- Writes are also allowed via anon key — PIN check happens in app.
--- For a small barbershop, this is the right tradeoff: simple + functional.
+-- Anon key gets SELECT-only on all tables. All mutations go
+-- through API routes using the service_role key (bypasses RLS).
+-- The join_queue() RPC is SECURITY DEFINER so client joins work.
 -- ============================================================
 
 alter table public.services enable row level security;
@@ -94,32 +95,17 @@ create policy "Services are publicly readable"
 create policy "Barbers are publicly readable"
   on public.barbers for select using (true);
 
--- Shop settings: readable by all, writable by all (PIN gated in app)
+-- Shop settings: read-only (staff writes via service_role)
 create policy "Shop settings are publicly readable"
   on public.shop_settings for select using (true);
 
-create policy "Shop settings are writable"
-  on public.shop_settings for update using (true);
-
--- Queue entries: full access (PIN gated in app for mutations)
+-- Queue entries: read-only (joins via join_queue RPC, staff writes via service_role)
 create policy "Queue entries are publicly readable"
   on public.queue_entries for select using (true);
 
-create policy "Queue entries are insertable"
-  on public.queue_entries for insert with check (true);
-
-create policy "Queue entries are updatable"
-  on public.queue_entries for update using (true);
-
-create policy "Queue entries are deletable"
-  on public.queue_entries for delete using (true);
-
--- Cut history: readable by all, insertable by all (PIN gated in app)
+-- Cut history: read-only (staff writes via service_role)
 create policy "Cut history is publicly readable"
   on public.cut_history for select using (true);
-
-create policy "Cut history is insertable"
-  on public.cut_history for insert with check (true);
 
 -- ============================================================
 -- REALTIME
@@ -138,7 +124,8 @@ create or replace function public.join_queue(
   p_customer_name text,
   p_service_id uuid,
   p_source text default 'kiosk',
-  p_arrival_status public.arrival_status default 'here'
+  p_arrival_status public.arrival_status default 'here',
+  p_phone text default null
 )
 returns public.queue_entries
 language plpgsql
@@ -175,8 +162,8 @@ begin
   where status in ('waiting', 'in_progress');
 
   -- Insert the new entry
-  insert into public.queue_entries (customer_name, service_id, position, source, arrival_status)
-  values (p_customer_name, p_service_id, v_next_position, p_source, p_arrival_status)
+  insert into public.queue_entries (customer_name, service_id, position, source, arrival_status, phone)
+  values (p_customer_name, p_service_id, v_next_position, p_source, p_arrival_status, p_phone)
   returning * into v_new_entry;
 
   return v_new_entry;

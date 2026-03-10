@@ -309,7 +309,8 @@ export function RemoteJoin() {
         name.trim(),
         selectedService.id,
         "remote",
-        "on_my_way"
+        "on_my_way",
+        verifiedPhone
       );
       setResult(entry);
       setStep("confirmation");

@@ -7,7 +7,8 @@ export async function joinQueue(
   customerName: string,
   serviceId: string,
   source: "kiosk" | "remote" = "kiosk",
-  arrivalStatus: ArrivalStatus = "here"
+  arrivalStatus: ArrivalStatus = "here",
+  phone?: string
 ) {
   // Sanitize name: trim, cap length, strip tags
   const safeName = customerName.trim().slice(0, 50).replace(/<[^>]*>/g, "");
@@ -18,6 +19,7 @@ export async function joinQueue(
     p_service_id: serviceId,
     p_source: source,
     p_arrival_status: arrivalStatus,
+    p_phone: phone ?? null,
   });
 
   if (error) throw new Error(error.message);

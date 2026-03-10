@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import twilio from "twilio";
 import { verifyStaffRequest } from "@/lib/staff-auth";
 import { createServiceClient } from "@/lib/supabase/server";
 
@@ -32,15 +33,35 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      const { error: dbError } = await supabase
+      const { data: updatedEntry, error: dbError } = await supabase
         .from("queue_entries")
         .update({
           status: "in_progress",
           called_at: new Date().toISOString(),
         })
-        .eq("id", entryId);
+        .eq("id", entryId)
+        .select("customer_name, phone")
+        .single();
 
       if (dbError) return NextResponse.json({ error: dbError.message }, { status: 500 });
+
+      // Send SMS notification if customer has a phone number
+      if (updatedEntry?.phone && process.env.TWILIO_PHONE_NUMBER) {
+        try {
+          const twilioClient = twilio(
+            process.env.TWILIO_ACCOUNT_SID,
+            process.env.TWILIO_AUTH_TOKEN
+          );
+          await twilioClient.messages.create({
+            to: updatedEntry.phone,
+            from: process.env.TWILIO_PHONE_NUMBER,
+            body: `Hey ${updatedEntry.customer_name}! You're up next at The Chop Shop. Head to the chair!`,
+          });
+        } catch (smsErr) {
+          console.error("SMS notification failed:", smsErr);
+        }
+      }
+
       return NextResponse.json({ success: true });
     }
 

@@ -34,6 +34,7 @@ export interface QueueEntry {
   arrival_status: ArrivalStatus;
   position: number;
   source: string;
+  phone: string | null;
   assigned_barber_id: string | null;
   created_at: string;
   called_at: string | null;
