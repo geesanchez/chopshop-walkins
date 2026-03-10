@@ -1,28 +1,29 @@
 import type { MetadataRoute } from "next";
+import { SHOP } from "@/lib/shop-config";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
     {
-      url: "https://queue.thechopshopwatsonville.com",
+      url: SHOP.domain,
       lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 1,
     },
     {
-      url: "https://queue.thechopshopwatsonville.com/join",
+      url: `${SHOP.domain}/join`,
       lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 0.8,
     },
     {
-      url: "https://queue.thechopshopwatsonville.com/privacy",
-      lastModified: new Date(),
+      url: `${SHOP.domain}/privacy`,
+      lastModified: "2026-03-09",
       changeFrequency: "yearly",
       priority: 0.3,
     },
     {
-      url: "https://queue.thechopshopwatsonville.com/terms",
-      lastModified: new Date(),
+      url: `${SHOP.domain}/terms`,
+      lastModified: "2026-03-09",
       changeFrequency: "yearly",
       priority: 0.3,
     },

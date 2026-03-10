@@ -10,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import type { QueueEntry, Service } from "@/lib/supabase/types";
 import Image from "next/image";
 import Link from "next/link";
+import { SHOP } from "@/lib/shop-config";
 
 type Step = "name" | "service" | "confirmation";
 
@@ -56,6 +57,7 @@ export function KioskForm() {
             width={120}
             height={120}
             className="rounded-full"
+            sizes="120px"
           />
         </Link>
         <h1 className="text-3xl font-bold text-gold">The Chop Shop</h1>
@@ -64,9 +66,9 @@ export function KioskForm() {
         </p>
         <div className="text-sm text-muted-foreground space-y-1 mt-4">
           <p className="font-semibold text-foreground">Hours</p>
-          <p>Tue–Fri: 10 AM – 6 PM</p>
-          <p>Saturday: 10 AM – 3 PM</p>
-          <p>Sun–Mon: Closed</p>
+          <p>{SHOP.hours.weekday}</p>
+          <p>{SHOP.hours.saturday}</p>
+          <p>{SHOP.hours.closed}</p>
         </div>
       </div>
     );
@@ -83,6 +85,7 @@ export function KioskForm() {
             width={120}
             height={120}
             className="rounded-full"
+            sizes="120px"
           />
         </Link>
         <h1 className="text-3xl font-bold text-gold">The Chop Shop</h1>
@@ -110,6 +113,7 @@ export function KioskForm() {
               width={100}
               height={100}
               className="rounded-full"
+              sizes="100px"
             />
           </Link>
           <h1 className="text-4xl font-bold text-gold">You&apos;re up next!</h1>
@@ -150,6 +154,7 @@ export function KioskForm() {
             width={100}
             height={100}
             className="rounded-full"
+            sizes="100px"
           />
         </Link>
         <h1 className="text-3xl font-bold text-gold">You&apos;re in!</h1>
@@ -220,6 +225,7 @@ export function KioskForm() {
           width={100}
           height={100}
           className="rounded-full"
+          sizes="100px"
         />
       </Link>
       <h1 className="text-2xl font-bold text-gold">Walk-in Sign Up</h1>
@@ -284,7 +290,7 @@ export function KioskForm() {
           </div>
 
           {error && (
-            <p className="text-destructive text-sm text-center">{error}</p>
+            <p role="alert" aria-live="polite" className="text-destructive text-sm text-center">{error}</p>
           )}
 
           <div className="flex gap-3">

@@ -108,9 +108,8 @@ export function useQueue() {
     };
   }, [fetchQueue, fetchServices, fetchBarbers, fetchShopSettings]);
 
-  const activeCount = queue.filter(
-    (e) => e.status === "waiting" || e.status === "in_progress"
-  ).length;
+  // Queue is already filtered to waiting + in_progress by the query
+  const activeCount = queue.length;
 
   const isFull = shopSettings ? activeCount >= shopSettings.queue_cap : false;
 

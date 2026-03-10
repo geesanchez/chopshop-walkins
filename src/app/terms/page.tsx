@@ -1,8 +1,10 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { SHOP } from "@/lib/shop-config";
 
 export const metadata: Metadata = {
-  title: "Terms & Conditions — The Chop Shop",
+  title: "Terms & Conditions",
+  alternates: { canonical: "/terms" },
   description: "Terms and conditions for The Chop Shop walk-in queue system.",
 };
 
@@ -99,11 +101,11 @@ export default function TermsPage() {
             any message, or contact us directly:
           </p>
           <p className="mt-1">
-            The Chop Shop
+            {SHOP.name}
             <br />
-            501b Main St, Watsonville, CA
+            {SHOP.address}
             <br />
-            (831) 319-1824
+            {SHOP.phone}
           </p>
         </section>
 

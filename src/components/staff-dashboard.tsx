@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useQueue } from "@/hooks/use-queue";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import {
   Dialog,
@@ -133,6 +133,7 @@ export function StaffDashboard() {
               width={48}
               height={48}
               className="rounded-full"
+              sizes="48px"
             />
           </Link>
           <div>
@@ -177,7 +178,7 @@ export function StaffDashboard() {
 
       {/* Error Banner */}
       {actionError && (
-        <div className="mb-4 p-3 rounded-lg bg-destructive/10 border border-destructive/30 flex items-center justify-between">
+        <div role="alert" aria-live="polite" className="mb-4 p-3 rounded-lg bg-destructive/10 border border-destructive/30 flex items-center justify-between">
           <p className="text-destructive text-sm font-medium">{actionError}</p>
           <Button
             size="sm"
@@ -203,7 +204,7 @@ export function StaffDashboard() {
             <Button
               size="sm"
               variant="outline"
-              className="h-10 w-10 text-lg border-border"
+              className="h-11 w-11 text-lg border-border"
               disabled={
                 shopSettings.active_barbers <= 1 ||
                 actionLoading === "barbers"
@@ -227,7 +228,7 @@ export function StaffDashboard() {
             <Button
               size="sm"
               variant="outline"
-              className="h-10 w-10 text-lg border-border"
+              className="h-11 w-11 text-lg border-border"
               disabled={
                 shopSettings.active_barbers >= barbers.length ||
                 actionLoading === "barbers"
@@ -261,7 +262,7 @@ export function StaffDashboard() {
             <Button
               size="sm"
               variant="outline"
-              className="h-10 w-10 text-lg border-border"
+              className="h-11 w-11 text-lg border-border"
               disabled={
                 shopSettings.queue_cap <= 1 ||
                 actionLoading === "queue-cap"
@@ -285,7 +286,7 @@ export function StaffDashboard() {
             <Button
               size="sm"
               variant="outline"
-              className="h-10 w-10 text-lg border-border"
+              className="h-11 w-11 text-lg border-border"
               disabled={
                 shopSettings.queue_cap >= 30 ||
                 actionLoading === "queue-cap"
@@ -328,7 +329,7 @@ export function StaffDashboard() {
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="font-semibold text-lg">
+                        <p className="font-semibold text-lg truncate max-w-[180px] sm:max-w-[250px]">
                           {entry.customer_name}
                         </p>
                         <div className="flex items-center gap-2 mt-1">
@@ -387,7 +388,7 @@ export function StaffDashboard() {
                       {index + 1}
                     </span>
                     <div>
-                      <p className="font-semibold">{entry.customer_name}</p>
+                      <p className="font-semibold truncate max-w-[150px] sm:max-w-[200px]">{entry.customer_name}</p>
                       <div className="flex items-center gap-2 mt-1">
                         <Badge variant="secondary" className="text-xs">
                           {entry.services?.name}
@@ -410,13 +411,14 @@ export function StaffDashboard() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap justify-end">
                     {entry.source === "remote" &&
                       entry.arrival_status === "on_my_way" && (
                         <Button
                           size="sm"
                           variant="outline"
                           className="border-green-500 text-green-500 hover:bg-green-500/10"
+                          aria-label={`Mark ${entry.customer_name} as here`}
                           onClick={() =>
                             handleAction(
                               () => markArrived(entry.id),
@@ -431,6 +433,7 @@ export function StaffDashboard() {
                     <Button
                       size="sm"
                       className="bg-gold hover:bg-gold-dark text-black"
+                      aria-label={`Call ${entry.customer_name}`}
                       onClick={() =>
                         handleAction(
                           () => callNext(entry.id),
@@ -448,6 +451,7 @@ export function StaffDashboard() {
                       size="sm"
                       variant="outline"
                       className="border-yellow-600 text-yellow-600 hover:bg-yellow-600/10"
+                      aria-label={`Skip ${entry.customer_name}`}
                       onClick={() => setSkippingEntry(entry)}
                     >
                       Skip
@@ -456,6 +460,7 @@ export function StaffDashboard() {
                       size="sm"
                       variant="outline"
                       className="border-destructive text-destructive hover:bg-destructive/10"
+                      aria-label={`Remove ${entry.customer_name}`}
                       onClick={() => setRemovingEntry(entry)}
                     >
                       Remove

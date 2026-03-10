@@ -60,7 +60,7 @@ export function PublicDisplay() {
   // Shop closed state
   if (!shopSettings.is_open) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-8 bg-black p-12">
+      <div className="min-h-screen flex flex-col items-center justify-center gap-6 md:gap-8 bg-black p-6 md:p-12">
         <Link href="/">
           <Image
             src="/logo.jpeg"
@@ -68,22 +68,24 @@ export function PublicDisplay() {
             width={180}
             height={180}
             className="rounded-full"
+            priority
+            sizes="180px"
           />
         </Link>
-        <h1 className="text-6xl font-bold text-gold">The Chop Shop</h1>
-        <p className="text-3xl text-muted-foreground">We&apos;re currently closed</p>
-        <div className="text-xl text-muted-foreground space-y-2 mt-4 text-center">
-          <p className="text-2xl font-semibold text-foreground mb-4">Hours</p>
-          <p>Tue – Fri: 10 AM – 6 PM</p>
-          <p>Saturday: 10 AM – 3 PM</p>
-          <p>Sun – Mon: Closed</p>
+        <h1 className="text-4xl md:text-6xl font-bold text-gold">The Chop Shop</h1>
+        <p className="text-xl md:text-3xl text-muted-foreground">We&apos;re currently closed</p>
+        <div className="text-lg md:text-xl text-muted-foreground space-y-2 mt-4 text-center">
+          <p className="text-xl md:text-2xl font-semibold text-foreground mb-4">Hours</p>
+          <p>{SHOP.hours.weekday}</p>
+          <p>{SHOP.hours.saturday}</p>
+          <p>{SHOP.hours.closed}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-black flex flex-col p-8">
+    <div className="min-h-screen bg-black flex flex-col p-4 md:p-8">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-5">
@@ -94,10 +96,12 @@ export function PublicDisplay() {
               width={80}
               height={80}
               className="rounded-full"
+              priority
+              sizes="80px"
             />
           </Link>
           <div>
-            <h1 className="text-4xl font-bold text-gold">The Chop Shop</h1>
+            <h1 className="text-2xl md:text-4xl font-bold text-gold">The Chop Shop</h1>
             <p className="text-xl text-muted-foreground mt-1">Walk-in Queue</p>
           </div>
         </div>
@@ -131,7 +135,7 @@ export function PublicDisplay() {
                     </span>
                   </div>
                   <div>
-                    <p className="text-3xl font-bold">{entry.customer_name}</p>
+                    <p className="text-3xl font-bold truncate max-w-[200px] md:max-w-[300px]">{entry.customer_name}</p>
                     <p className="text-lg text-gold mt-1">
                       {entry.services?.name}
                     </p>
@@ -180,7 +184,7 @@ export function PublicDisplay() {
                         {index + 1}
                       </span>
                       <div>
-                        <p className={`font-semibold ${compact ? "text-xl" : "text-3xl"}`}>
+                        <p className={`font-semibold truncate max-w-[150px] md:max-w-[250px] ${compact ? "text-xl" : "text-3xl"}`}>
                           {entry.customer_name}
                         </p>
                         <div className="flex items-center gap-3 mt-0.5">
@@ -216,7 +220,7 @@ export function PublicDisplay() {
       </div>
 
       {/* Footer */}
-      <div className="mt-8 pt-6 border-t border-border flex items-center justify-between text-muted-foreground">
+      <div className="mt-8 pt-6 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-2 text-muted-foreground">
         <p className="text-lg">
           {SHOP.hours.short}
         </p>

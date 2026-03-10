@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { DisplayClient } from "./display-client";
+import { PublicDisplay } from "@/components/public-display";
 
 export const dynamic = "force-dynamic";
 
@@ -8,5 +8,5 @@ export const metadata: Metadata = {
 };
 
 export default function DisplayPage() {
-  return <DisplayClient />;
+  return <PublicDisplay />;
 }

@@ -66,6 +66,7 @@ export function RemoteJoin() {
             width={100}
             height={100}
             className="rounded-full"
+            sizes="100px"
           />
         </Link>
         <h1 className="text-2xl font-bold text-gold">The Chop Shop</h1>
@@ -74,9 +75,9 @@ export function RemoteJoin() {
         </p>
         <div className="text-sm text-muted-foreground space-y-1 mt-2">
           <p className="font-semibold text-foreground">Hours</p>
-          <p>Tue–Fri: 10 AM – 6 PM</p>
-          <p>Saturday: 10 AM – 3 PM</p>
-          <p>Sun–Mon: Closed</p>
+          <p>{SHOP.hours.weekday}</p>
+          <p>{SHOP.hours.saturday}</p>
+          <p>{SHOP.hours.closed}</p>
         </div>
       </div>
     );
@@ -93,6 +94,7 @@ export function RemoteJoin() {
             width={100}
             height={100}
             className="rounded-full"
+            sizes="100px"
           />
         </Link>
         <h1 className="text-2xl font-bold text-gold">The Chop Shop</h1>
@@ -118,6 +120,7 @@ export function RemoteJoin() {
             width={80}
             height={80}
             className="rounded-full"
+            sizes="80px"
           />
         </Link>
 
@@ -330,6 +333,7 @@ export function RemoteJoin() {
           width={80}
           height={80}
           className="rounded-full"
+          sizes="80px"
         />
       </Link>
       <h1 className="text-2xl font-bold text-gold">Join the Queue</h1>
@@ -377,7 +381,9 @@ export function RemoteJoin() {
           <p className="text-xs text-muted-foreground text-center">
             We&apos;ll send a code to verify it&apos;s you
           </p>
+          <label htmlFor="remote-phone" className="sr-only">Phone number</label>
           <Input
+            id="remote-phone"
             type="tel"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
@@ -391,7 +397,7 @@ export function RemoteJoin() {
           />
 
           {error && (
-            <p className="text-destructive text-sm text-center">{error}</p>
+            <p role="alert" aria-live="polite" className="text-destructive text-sm text-center">{error}</p>
           )}
 
           <div className="flex gap-3">
@@ -425,7 +431,9 @@ export function RemoteJoin() {
           <p className="text-center text-gold font-semibold">
             {verifiedPhone}
           </p>
+          <label htmlFor="remote-code" className="sr-only">Verification code</label>
           <Input
+            id="remote-code"
             type="text"
             inputMode="numeric"
             value={code}
@@ -440,7 +448,7 @@ export function RemoteJoin() {
           />
 
           {error && (
-            <p className="text-destructive text-sm text-center">{error}</p>
+            <p role="alert" aria-live="polite" className="text-destructive text-sm text-center">{error}</p>
           )}
 
           <Button
@@ -453,7 +461,7 @@ export function RemoteJoin() {
 
           <button
             type="button"
-            className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors"
+            className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors py-2"
             onClick={() => {
               setCode("");
               setError("");
@@ -495,7 +503,7 @@ export function RemoteJoin() {
           </div>
 
           {error && (
-            <p className="text-destructive text-sm text-center">{error}</p>
+            <p role="alert" aria-live="polite" className="text-destructive text-sm text-center">{error}</p>
           )}
 
           <div className="flex gap-3">

@@ -41,17 +41,6 @@ export interface QueueEntry {
   completed_at: string | null;
 }
 
-export interface CutHistory {
-  id: string;
-  customer_name: string;
-  service_id: string;
-  barber_id: string;
-  source: string;
-  started_at: string | null;
-  completed_at: string;
-  created_at: string;
-}
-
 // Joined types for UI convenience
 export interface QueueEntryWithService extends QueueEntry {
   services: Service;

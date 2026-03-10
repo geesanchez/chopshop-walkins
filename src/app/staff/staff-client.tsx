@@ -15,7 +15,6 @@ export function StaffClient() {
         if (res.ok) {
           setAuthenticated(true);
         } else {
-          sessionStorage.removeItem("staff-authenticated");
           setAuthenticated(false);
         }
       })

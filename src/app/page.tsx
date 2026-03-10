@@ -12,6 +12,7 @@ export default function Home() {
         height={200}
         className="rounded-full"
         priority
+        sizes="200px"
       />
       <h1 className="text-4xl font-bold text-gold text-center">
         The Chop Shop
@@ -20,7 +21,7 @@ export default function Home() {
         </span>
       </h1>
 
-      <div className="grid grid-cols-2 gap-4 mt-8 w-full max-w-md">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8 w-full max-w-md">
         <Link
           href="/kiosk"
           className="flex items-center justify-center rounded-lg border border-border bg-card p-6 text-center hover:border-gold transition-colors"
@@ -49,7 +50,7 @@ export default function Home() {
           href={SHOP.bookingUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="col-span-2 flex items-center justify-center rounded-lg bg-gold hover:bg-gold-dark text-black p-6 text-center transition-colors"
+          className="sm:col-span-2 flex items-center justify-center rounded-lg bg-gold hover:bg-gold-dark text-black p-6 text-center transition-colors"
         >
           <span className="text-lg font-bold">Book Appointment</span>
         </a>

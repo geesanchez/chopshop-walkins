@@ -2,7 +2,7 @@ export const SHOP = {
   name: "The Chop Shop",
   phone: "(831) 319-1824",
   phoneTel: "tel:8313191824",
-  address: "501b Main St, Watsonville CA",
+  address: "501b Main St, Watsonville CA 95076",
   mapsUrl: "https://maps.google.com/?q=501b+Main+St+Watsonville+CA+95076",
   hours: {
     weekday: "Tue–Fri: 10 AM – 6 PM",

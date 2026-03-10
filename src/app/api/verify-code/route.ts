@@ -2,18 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import twilio from "twilio";
 
-const client = twilio(
-  process.env.TWILIO_ACCOUNT_SID,
-  process.env.TWILIO_AUTH_TOKEN
-);
-
 const VerifyCodeSchema = z.object({
   phone: z.string().min(1).max(20),
   code: z.string().min(4).max(10),
 });
 
 export async function POST(request: NextRequest) {
-  const body = await request.json();
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+  }
   const parsed = VerifyCodeSchema.safeParse(body);
 
   if (!parsed.success) {
@@ -24,6 +24,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
     const check = await client.verify.v2
       .services(process.env.TWILIO_VERIFY_SERVICE_SID!)
       .verificationChecks.create({

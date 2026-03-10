@@ -9,23 +9,20 @@ import { useState, useEffect, useRef } from "react";
  * seconds between minute-level estimate changes.
  */
 export function useCountdown(estimateMinutes: number) {
-  const ref = useRef({ minutes: estimateMinutes, setAt: Date.now() });
-
-  // When estimate changes (roughly once per minute), reset the reference
-  if (estimateMinutes !== ref.current.minutes) {
-    ref.current = { minutes: estimateMinutes, setAt: Date.now() };
-  }
+  const ref = useRef({ minutes: 0, setAt: 0 });
 
   const [remainingSeconds, setRemainingSeconds] = useState<number>(
     () => Math.max(0, estimateMinutes * 60)
   );
 
   useEffect(() => {
-    const { minutes, setAt } = ref.current;
+    // Update ref when estimate changes
+    ref.current = { minutes: estimateMinutes, setAt: Date.now() };
 
     function tick() {
+      const { minutes: mins, setAt } = ref.current;
       const elapsedSeconds = (Date.now() - setAt) / 1000;
-      const remaining = Math.max(0, Math.round(minutes * 60 - elapsedSeconds));
+      const remaining = Math.max(0, Math.round(mins * 60 - elapsedSeconds));
       setRemainingSeconds(remaining);
     }
 

@@ -31,7 +31,6 @@ export function PinGate({ onAuthenticated }: PinGateProps) {
       const data = await res.json();
 
       if (data.success) {
-        sessionStorage.setItem("staff-authenticated", "true");
         onAuthenticated();
       } else {
         setError("Invalid PIN");
@@ -65,13 +64,17 @@ export function PinGate({ onAuthenticated }: PinGateProps) {
               width={80}
               height={80}
               className="rounded-full mx-auto mb-4"
+              priority
+              sizes="80px"
             />
           </Link>
           <CardTitle className="text-gold text-xl">Staff Access</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
+            <label htmlFor="staff-pin" className="sr-only">Staff PIN</label>
             <Input
+              id="staff-pin"
               type="password"
               value={pin}
               readOnly
@@ -80,7 +83,7 @@ export function PinGate({ onAuthenticated }: PinGateProps) {
             />
 
             {error && (
-              <p className="text-destructive text-sm text-center">{error}</p>
+              <p role="alert" aria-live="polite" className="text-destructive text-sm text-center">{error}</p>
             )}
 
             {/* Number pad for tablet use */}

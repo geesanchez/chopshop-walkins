@@ -3,11 +3,6 @@ import { z } from "zod";
 import twilio from "twilio";
 import { createServiceClient } from "@/lib/supabase/server";
 
-const client = twilio(
-  process.env.TWILIO_ACCOUNT_SID,
-  process.env.TWILIO_AUTH_TOKEN
-);
-
 const SMS_LIMIT = 3;
 const SMS_WINDOW_MINUTES = 15;
 
@@ -61,7 +56,12 @@ async function recordAttempt(
 }
 
 export async function POST(request: NextRequest) {
-  const body = await request.json();
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+  }
   const parsed = SendCodeSchema.safeParse(body);
 
   if (!parsed.success) {
@@ -94,6 +94,7 @@ export async function POST(request: NextRequest) {
   await recordAttempt(supabase, e164);
 
   try {
+    const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
     await client.verify.v2
       .services(process.env.TWILIO_VERIFY_SERVICE_SID!)
       .verifications.create({

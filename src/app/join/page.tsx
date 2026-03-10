@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { JoinClient } from "./join-client";
+import { RemoteJoin } from "@/components/remote-join";
 
 export const dynamic = "force-dynamic";
 
@@ -27,5 +27,5 @@ export const metadata: Metadata = {
 };
 
 export default function JoinPage() {
-  return <JoinClient />;
+  return <RemoteJoin />;
 }
