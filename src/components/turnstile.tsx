@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef } from "react";
 
 declare global {
   interface Window {
@@ -30,10 +30,12 @@ interface TurnstileProps {
 export function Turnstile({ onVerify, onExpire }: TurnstileProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
+  const onVerifyRef = useRef(onVerify);
+  const onExpireRef = useRef(onExpire);
 
-  const handleExpire = useCallback(() => {
-    onExpire?.();
-  }, [onExpire]);
+  // Keep refs in sync without triggering re-renders
+  onVerifyRef.current = onVerify;
+  onExpireRef.current = onExpire;
 
   useEffect(() => {
     const container = containerRef.current;
@@ -42,47 +44,44 @@ export function Turnstile({ onVerify, onExpire }: TurnstileProps) {
     const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
     if (!siteKey) return;
 
-    function tryRender() {
+    let interval: ReturnType<typeof setInterval> | null = null;
+
+    function renderWidget() {
       if (!window.turnstile || !container) return;
 
-      // Clean up any existing widget
-      if (widgetIdRef.current) {
-        window.turnstile.remove(widgetIdRef.current);
-        widgetIdRef.current = null;
-      }
+      // Don't re-render if already rendered
+      if (widgetIdRef.current) return;
 
       widgetIdRef.current = window.turnstile.render(container, {
         sitekey: siteKey!,
-        callback: onVerify,
-        "expired-callback": handleExpire,
-        "error-callback": handleExpire,
+        callback: (token: string) => onVerifyRef.current(token),
+        "expired-callback": () => onExpireRef.current?.(),
+        "error-callback": () => onExpireRef.current?.(),
         theme: "dark",
         size: "normal",
       });
     }
 
-    // If turnstile script is already loaded, render immediately
     if (window.turnstile) {
-      tryRender();
+      renderWidget();
     } else {
-      // Wait for the script to load
-      const interval = setInterval(() => {
+      interval = setInterval(() => {
         if (window.turnstile) {
-          clearInterval(interval);
-          tryRender();
+          clearInterval(interval!);
+          interval = null;
+          renderWidget();
         }
       }, 100);
-
-      return () => clearInterval(interval);
     }
 
     return () => {
+      if (interval) clearInterval(interval);
       if (widgetIdRef.current && window.turnstile) {
         window.turnstile.remove(widgetIdRef.current);
         widgetIdRef.current = null;
       }
     };
-  }, [onVerify, handleExpire]);
+  }, []); // Run once on mount only
 
   return <div ref={containerRef} className="flex justify-center" />;
 }
