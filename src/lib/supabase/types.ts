@@ -22,8 +22,12 @@ export interface ShopSettings {
   is_open: boolean;
   queue_cap: number;
   active_barbers: number;
-  staff_pin_hash: string | null;
   updated_at: string;
+}
+
+/** Full row type including sensitive fields — only use server-side */
+export interface ShopSettingsRow extends ShopSettings {
+  staff_pin_hash: string | null;
 }
 
 export interface QueueEntry {

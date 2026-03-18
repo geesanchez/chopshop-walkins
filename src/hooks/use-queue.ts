@@ -20,7 +20,7 @@ export function useQueue() {
   const fetchQueue = useCallback(async () => {
     const { data, error } = await supabase
       .from("queue_entries")
-      .select("*, services(*)")
+      .select("id, customer_name, service_id, status, arrival_status, position, source, assigned_barber_id, created_at, called_at, completed_at, services(*)")
       .in("status", ["waiting", "in_progress"])
       .order("position", { ascending: true });
 
@@ -53,7 +53,7 @@ export function useQueue() {
   const fetchShopSettings = useCallback(async () => {
     const { data, error } = await supabase
       .from("shop_settings")
-      .select("*")
+      .select("id, is_open, queue_cap, active_barbers, updated_at")
       .limit(1)
       .single();
 
