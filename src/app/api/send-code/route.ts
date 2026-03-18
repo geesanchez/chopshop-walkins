@@ -8,6 +8,7 @@ const SMS_WINDOW_MINUTES = 15;
 
 const SendCodeSchema = z.object({
   phone: z.string().min(1).max(20),
+  turnstileToken: z.string().min(1, "Bot verification required"),
 });
 
 async function isRateLimited(
@@ -69,6 +70,30 @@ export async function POST(request: NextRequest) {
       { error: "Phone number required" },
       { status: 400 }
     );
+  }
+
+  // Verify Turnstile token with Cloudflare before doing anything else
+  const turnstileSecret = process.env.TURNSTILE_SECRET_KEY;
+  if (turnstileSecret) {
+    const cfRes = await fetch(
+      "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          secret: turnstileSecret,
+          response: parsed.data.turnstileToken,
+          remoteip: request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "",
+        }),
+      }
+    );
+    const cfData = await cfRes.json();
+    if (!cfData.success) {
+      return NextResponse.json(
+        { error: "Bot verification failed. Please refresh and try again." },
+        { status: 403 }
+      );
+    }
   }
 
   // Normalize: strip non-digits, ensure +1 prefix for US numbers

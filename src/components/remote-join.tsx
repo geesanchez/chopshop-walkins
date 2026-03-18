@@ -11,6 +11,7 @@ import type { QueueEntry, Service } from "@/lib/supabase/types";
 import Image from "next/image";
 import Link from "next/link";
 import { SHOP } from "@/lib/shop-config";
+import { Turnstile } from "@/components/turnstile";
 
 type Step = "name" | "phone" | "verify" | "service" | "confirmation";
 
@@ -37,6 +38,7 @@ export function RemoteJoin() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [result, setResult] = useState<QueueEntry | null>(null);
+  const [turnstileToken, setTurnstileToken] = useState("");
 
   // Compute countdown values before early returns (hook rules)
   const place = result ? placeInLine(result.id) : 0;
@@ -257,7 +259,7 @@ export function RemoteJoin() {
       const res = await fetch("/api/send-code", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone }),
+        body: JSON.stringify({ phone, turnstileToken }),
       });
 
       const data = await res.json();
@@ -396,6 +398,11 @@ export function RemoteJoin() {
             }}
           />
 
+          <Turnstile
+            onVerify={setTurnstileToken}
+            onExpire={() => setTurnstileToken("")}
+          />
+
           {error && (
             <p role="alert" aria-live="polite" className="text-destructive text-sm text-center">{error}</p>
           )}
@@ -407,13 +414,14 @@ export function RemoteJoin() {
               onClick={() => {
                 setStep("name");
                 setError("");
+                setTurnstileToken("");
               }}
             >
               Back
             </Button>
             <Button
               className="flex-1 h-14 text-lg bg-gold hover:bg-gold-dark text-black font-bold"
-              disabled={phone.replace(/\D/g, "").length < 10 || sendingCode}
+              disabled={phone.replace(/\D/g, "").length < 10 || sendingCode || !turnstileToken}
               onClick={handleSendCode}
             >
               {sendingCode ? "Sending..." : "Send Code"}
