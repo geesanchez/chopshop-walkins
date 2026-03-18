@@ -74,6 +74,9 @@ export async function POST(request: NextRequest) {
 
   // Verify Turnstile token with Cloudflare before doing anything else
   const turnstileSecret = process.env.TURNSTILE_SECRET_KEY;
+  if (!turnstileSecret) {
+    console.error("[send-code] TURNSTILE_SECRET_KEY is not set — bot protection disabled");
+  }
   if (turnstileSecret) {
     const cfRes = await fetch(
       "https://challenges.cloudflare.com/turnstile/v0/siteverify",

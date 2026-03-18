@@ -74,6 +74,22 @@ create table public.cut_history (
 create index idx_cut_history_barber on public.cut_history(barber_id);
 create index idx_cut_history_completed on public.cut_history(completed_at);
 
+-- 6. PIN ATTEMPTS TABLE
+-- Rate limiting for staff PIN authentication
+create table if not exists public.pin_attempts (
+  ip text primary key,
+  count integer not null default 1,
+  window_start timestamptz not null default now()
+);
+
+-- 7. SMS ATTEMPTS TABLE
+-- Rate limiting for SMS verification requests
+create table if not exists public.sms_attempts (
+  phone text primary key,
+  count integer not null default 1,
+  window_start timestamptz not null default now()
+);
+
 -- ============================================================
 -- ROW LEVEL SECURITY
 -- Anon key gets SELECT-only on all tables. All mutations go
@@ -86,6 +102,8 @@ alter table public.barbers enable row level security;
 alter table public.shop_settings enable row level security;
 alter table public.queue_entries enable row level security;
 alter table public.cut_history enable row level security;
+alter table public.pin_attempts enable row level security;
+alter table public.sms_attempts enable row level security;
 
 -- Services: read-only for everyone
 create policy "Services are publicly readable"
@@ -106,6 +124,16 @@ create policy "Queue entries are publicly readable"
 -- Cut history: read-only (staff writes via service_role)
 create policy "Cut history is publicly readable"
   on public.cut_history for select using (true);
+
+-- Pin attempts: service role only (no anon access)
+create policy "Service role only on pin_attempts"
+  on public.pin_attempts for all
+  using ((current_setting('request.jwt.claims', true)::json ->> 'role') = 'service_role');
+
+-- SMS attempts: service role only (no anon access)
+create policy "Service role only on sms_attempts"
+  on public.sms_attempts for all
+  using ((current_setting('request.jwt.claims', true)::json ->> 'role') = 'service_role');
 
 -- ============================================================
 -- REALTIME

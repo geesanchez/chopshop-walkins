@@ -45,7 +45,8 @@ export async function POST(request: NextRequest) {
     .not("id", "is", null);
 
   if (error) {
-    console.error(`[change-pin] DB error: ${error.message}`);
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error(`[change-pin] DB error: ${msg}`);
     return NextResponse.json({ error: "Failed to update PIN" }, { status: 500 });
   }
 
