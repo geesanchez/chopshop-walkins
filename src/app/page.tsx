@@ -21,36 +21,18 @@ export default function Home() {
         </span>
       </h1>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8 w-full max-w-md">
-        <Link
-          href="/kiosk"
-          className="flex items-center justify-center rounded-lg border border-border bg-card p-6 text-center hover:border-gold transition-colors"
-        >
-          <span className="text-lg font-medium">Kiosk</span>
-        </Link>
-        <Link
-          href="/staff"
-          className="flex items-center justify-center rounded-lg border border-border bg-card p-6 text-center hover:border-gold transition-colors"
-        >
-          <span className="text-lg font-medium">Staff</span>
-        </Link>
-        <Link
-          href="/display"
-          className="flex items-center justify-center rounded-lg border border-border bg-card p-6 text-center hover:border-gold transition-colors"
-        >
-          <span className="text-lg font-medium">Display</span>
-        </Link>
+      <div className="flex flex-col gap-4 mt-8 w-full max-w-sm">
         <Link
           href="/join"
-          className="flex items-center justify-center rounded-lg border border-border bg-card p-6 text-center hover:border-gold transition-colors"
+          className="flex items-center justify-center rounded-lg border border-gold bg-card p-6 text-center hover:bg-gold/10 transition-colors"
         >
-          <span className="text-lg font-medium">Remote Join</span>
+          <span className="text-lg font-semibold text-gold">Join the Queue</span>
         </Link>
         <a
           href={SHOP.bookingUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="sm:col-span-2 flex items-center justify-center rounded-lg bg-gold hover:bg-gold-dark text-black p-6 text-center transition-colors"
+          className="flex items-center justify-center rounded-lg bg-gold hover:bg-gold-dark text-black p-6 text-center transition-colors"
         >
           <span className="text-lg font-bold">Book Appointment</span>
         </a>
