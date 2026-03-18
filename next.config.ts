@@ -6,7 +6,7 @@ const csp = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: https:",
   "font-src 'self' https://fonts.gstatic.com data:",
-  "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.vercel-scripts.com https://*.vercel-insights.com",
+  "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.vercel-scripts.com https://*.vercel-insights.com https://challenges.cloudflare.com",
   "frame-src https://challenges.cloudflare.com",
   "frame-ancestors 'none'",
   "base-uri 'self'",
