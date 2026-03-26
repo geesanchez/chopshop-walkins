@@ -49,15 +49,16 @@ export function KioskForm() {
   // Shop is closed
   if (!shopSettings.is_open) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-6 p-8 text-center">
+      <div className="min-h-screen flex flex-col items-center gap-6 px-8 pt-[12vh] pb-8 text-center">
         <Link href="/">
           <Image
             src="/logo.jpeg"
             alt="The Chop Shop"
-            width={120}
-            height={120}
+            width={200}
+            height={200}
             className="rounded-full"
-            sizes="120px"
+            priority
+            sizes="200px"
           />
         </Link>
         <h1 className="text-3xl font-bold text-gold">The Chop Shop</h1>
@@ -77,15 +78,16 @@ export function KioskForm() {
   // Queue is full
   if (isFull && step !== "confirmation") {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-6 p-8 text-center">
+      <div className="min-h-screen flex flex-col items-center gap-6 px-8 pt-[12vh] pb-8 text-center">
         <Link href="/">
           <Image
             src="/logo.jpeg"
             alt="The Chop Shop"
-            width={120}
-            height={120}
+            width={200}
+            height={200}
             className="rounded-full"
-            sizes="120px"
+            priority
+            sizes="200px"
           />
         </Link>
         <h1 className="text-3xl font-bold text-gold">The Chop Shop</h1>
@@ -105,7 +107,7 @@ export function KioskForm() {
     // Barber pressed Call — show "You're up next!" screen
     if (serving) {
       return (
-        <div className="min-h-screen flex flex-col items-center justify-center gap-6 p-6 text-center">
+        <div className="min-h-screen flex flex-col items-center gap-6 px-6 pt-[12vh] pb-6 text-center">
           <Link href="/">
             <Image
               src="/logo.jpeg"
@@ -146,7 +148,7 @@ export function KioskForm() {
     }
 
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-6 p-6 text-center">
+      <div className="min-h-screen flex flex-col items-center gap-6 px-6 pt-[12vh] pb-6 text-center">
         <Link href="/">
           <Image
             src="/logo.jpeg"
@@ -217,18 +219,24 @@ export function KioskForm() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-6 p-8">
+    <div className="min-h-screen flex flex-col items-center gap-6 px-8 pt-[12vh] pb-8">
       <Link href="/">
         <Image
           src="/logo.jpeg"
           alt="The Chop Shop"
-          width={100}
-          height={100}
+          width={200}
+          height={200}
           className="rounded-full"
-          sizes="100px"
+          priority
+          sizes="200px"
         />
       </Link>
-      <h1 className="text-2xl font-bold text-gold">Walk-in Sign Up</h1>
+      <h1 className="text-4xl font-bold text-gold text-center">
+        The Chop Shop
+        <span className="block text-lg font-normal text-muted-foreground mt-1">
+          Walk-in Sign Up
+        </span>
+      </h1>
       <p className="text-sm text-muted-foreground">
         {activeCount} / {shopSettings.queue_cap} in queue
       </p>
