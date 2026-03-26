@@ -4,7 +4,7 @@ import { SHOP } from "@/lib/shop-config";
 
 export default function Home() {
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center gap-8 p-8">
+    <main className="min-h-screen flex flex-col items-center gap-8 px-8 pt-[12vh] pb-8">
       <Image
         src="/logo.jpeg"
         alt="The Chop Shop"
@@ -32,13 +32,13 @@ export default function Home() {
           href={SHOP.bookingUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center justify-center rounded-lg bg-gold hover:bg-gold-dark text-black p-6 text-center transition-colors"
+          className="flex items-center justify-center rounded-lg btn-gold p-6 text-center transition-colors"
         >
           <span className="text-lg font-bold">Book Appointment</span>
         </a>
       </div>
 
-      <footer className="mt-12 text-center text-sm text-muted-foreground space-y-1">
+      <footer className="mt-12 pt-6 footer-border text-center text-sm text-muted-foreground space-y-1">
         <p>
           <a href={SHOP.mapsUrl} target="_blank" rel="noopener noreferrer" className="hover:text-gold transition-colors">
             {SHOP.address}

@@ -34,8 +34,10 @@ export function Turnstile({ onVerify, onExpire }: TurnstileProps) {
   const onExpireRef = useRef(onExpire);
 
   // Keep refs in sync without triggering re-renders
-  onVerifyRef.current = onVerify;
-  onExpireRef.current = onExpire;
+  useEffect(() => {
+    onVerifyRef.current = onVerify;
+    onExpireRef.current = onExpire;
+  });
 
   useEffect(() => {
     const container = containerRef.current;

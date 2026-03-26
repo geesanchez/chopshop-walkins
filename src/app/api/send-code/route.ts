@@ -75,7 +75,14 @@ export async function POST(request: NextRequest) {
   // Verify Turnstile token with Cloudflare before doing anything else
   const turnstileSecret = process.env.TURNSTILE_SECRET_KEY;
   if (!turnstileSecret) {
-    console.error("[send-code] TURNSTILE_SECRET_KEY is not set — bot protection disabled");
+    if (process.env.NODE_ENV === "production") {
+      console.error("[send-code] TURNSTILE_SECRET_KEY is not set in production");
+      return NextResponse.json(
+        { error: "Service temporarily unavailable. Please try again." },
+        { status: 503 }
+      );
+    }
+    console.error("[send-code] TURNSTILE_SECRET_KEY is not set — bot protection disabled in dev");
   }
   if (turnstileSecret) {
     const cfRes = await fetch(

@@ -4,6 +4,7 @@ import { KioskClient } from "./kiosk-client";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
+  title: "Kiosk",
   robots: { index: false, follow: false },
 };
 

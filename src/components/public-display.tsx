@@ -220,7 +220,7 @@ export function PublicDisplay() {
       </div>
 
       {/* Footer */}
-      <div className="mt-8 pt-6 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-2 text-muted-foreground">
+      <div className="mt-8 pt-6 footer-border flex flex-col sm:flex-row items-center justify-between gap-2 text-muted-foreground">
         <p className="text-lg">
           {SHOP.hours.short}
         </p>

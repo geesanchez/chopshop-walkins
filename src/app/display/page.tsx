@@ -4,6 +4,7 @@ import { PublicDisplay } from "@/components/public-display";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
+  title: "Live Queue",
   robots: { index: false, follow: false },
 };
 

@@ -94,6 +94,7 @@ export function PinGate({ onAuthenticated }: PinGateProps) {
                   type="button"
                   variant="secondary"
                   className="h-14 text-xl font-bold"
+                  aria-label={`Digit ${digit}`}
                   onClick={() => handlePadPress(digit)}
                 >
                   {digit}
@@ -103,6 +104,7 @@ export function PinGate({ onAuthenticated }: PinGateProps) {
                 type="button"
                 variant="secondary"
                 className="h-14 text-lg"
+                aria-label="Delete last digit"
                 onClick={handleBackspace}
               >
                 Del
@@ -111,13 +113,14 @@ export function PinGate({ onAuthenticated }: PinGateProps) {
                 type="button"
                 variant="secondary"
                 className="h-14 text-xl font-bold"
+                aria-label="Digit 0"
                 onClick={() => handlePadPress("0")}
               >
                 0
               </Button>
               <Button
                 type="submit"
-                className="h-14 text-lg bg-gold text-black hover:bg-gold-dark font-bold"
+                className="h-14 text-lg btn-gold"
                 disabled={loading || pin.length === 0}
               >
                 {loading ? "..." : "Go"}

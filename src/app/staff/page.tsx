@@ -4,6 +4,7 @@ import { StaffClient } from "./staff-client";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
+  title: "Staff Dashboard",
   robots: { index: false, follow: false },
 };
 

@@ -4,11 +4,13 @@ import Link from "next/link";
 import Image from "next/image";
 
 export default function ErrorBoundary({
+  error,
   reset,
 }: {
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  console.error("[ErrorBoundary]", error);
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-6 p-6 text-center">
       <Link href="/">
@@ -27,7 +29,7 @@ export default function ErrorBoundary({
       </p>
       <button
         onClick={reset}
-        className="mt-4 inline-flex items-center justify-center rounded-lg bg-gold hover:bg-gold-dark text-black font-bold px-6 py-3 transition-colors"
+        className="mt-4 inline-flex items-center justify-center rounded-lg btn-gold px-6 py-3 transition-colors"
       >
         Try Again
       </button>

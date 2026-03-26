@@ -251,7 +251,7 @@ export function KioskForm() {
             }}
           />
           <Button
-            className="w-full h-14 text-lg bg-gold hover:bg-gold-dark text-black font-bold"
+            className="w-full h-14 text-lg btn-gold"
             disabled={!name.trim()}
             onClick={() => setStep("service")}
           >
@@ -276,7 +276,7 @@ export function KioskForm() {
                 }
                 className={`h-16 text-lg justify-between px-6 ${
                   selectedService?.id === service.id
-                    ? "bg-gold text-black hover:bg-gold-dark"
+                    ? "btn-gold"
                     : ""
                 }`}
                 onClick={() => setSelectedService(service)}
@@ -305,7 +305,7 @@ export function KioskForm() {
               Back
             </Button>
             <Button
-              className="flex-1 h-14 text-lg bg-gold hover:bg-gold-dark text-black font-bold"
+              className="flex-1 h-14 text-lg btn-gold"
               disabled={!selectedService || submitting}
               onClick={handleSubmit}
             >

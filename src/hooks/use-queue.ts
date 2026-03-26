@@ -31,23 +31,23 @@ export function useQueue() {
   const fetchServices = useCallback(async () => {
     const { data, error } = await supabase
       .from("services")
-      .select("*")
+      .select("id, name, duration_minutes, price")
       .eq("is_active", true)
       .order("name");
 
     if (error) console.error("fetchServices error:", error);
-    if (data) setServices(data);
+    if (data) setServices(data as Service[]);
   }, []);
 
   const fetchBarbers = useCallback(async () => {
     const { data, error } = await supabase
       .from("barbers")
-      .select("*")
+      .select("id, name")
       .eq("is_active", true)
       .order("name");
 
     if (error) console.error("fetchBarbers error:", error);
-    if (data) setBarbers(data);
+    if (data) setBarbers(data as Barber[]);
   }, []);
 
   const fetchShopSettings = useCallback(async () => {
@@ -75,7 +75,7 @@ export function useQueue() {
       ]);
       setLoading(false);
     }
-    init();
+    init().catch(() => {});
 
     // Subscribe to queue changes
     const queueChannel = supabase
@@ -84,22 +84,22 @@ export function useQueue() {
         "postgres_changes",
         { event: "*", schema: "public", table: "queue_entries" },
         () => {
-          fetchQueue();
+          fetchQueue().catch(() => {});
         }
       )
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "shop_settings" },
         () => {
-          fetchShopSettings();
+          fetchShopSettings().catch(() => {});
         }
       )
       .subscribe();
 
     // Polling fallback — keeps data fresh if Realtime disconnects
     const pollInterval = setInterval(() => {
-      fetchQueue();
-      fetchShopSettings();
+      fetchQueue().catch(() => {});
+      fetchShopSettings().catch(() => {});
     }, 10_000);
 
     return () => {

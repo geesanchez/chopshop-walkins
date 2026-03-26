@@ -60,18 +60,18 @@ export function RemoteJoin() {
   // Shop is closed
   if (!shopSettings.is_open) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-6 p-6 text-center">
+      <div className="min-h-screen flex flex-col items-center gap-6 px-6 pt-[12vh] pb-6 text-center">
         <Link href="/">
           <Image
             src="/logo.jpeg"
             alt="The Chop Shop"
-            width={100}
-            height={100}
+            width={200}
+            height={200}
             className="rounded-full"
-            sizes="100px"
+            sizes="200px"
           />
         </Link>
-        <h1 className="text-2xl font-bold text-gold">The Chop Shop</h1>
+        <h1 className="text-4xl font-bold text-gold">The Chop Shop</h1>
         <p className="text-lg text-muted-foreground">
           We&apos;re currently closed
         </p>
@@ -88,18 +88,18 @@ export function RemoteJoin() {
   // Queue is full
   if (isFull && step !== "confirmation") {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-6 p-6 text-center">
+      <div className="min-h-screen flex flex-col items-center gap-6 px-6 pt-[12vh] pb-6 text-center">
         <Link href="/">
           <Image
             src="/logo.jpeg"
             alt="The Chop Shop"
-            width={100}
-            height={100}
+            width={200}
+            height={200}
             className="rounded-full"
-            sizes="100px"
+            sizes="200px"
           />
         </Link>
-        <h1 className="text-2xl font-bold text-gold">The Chop Shop</h1>
+        <h1 className="text-4xl font-bold text-gold">The Chop Shop</h1>
         <p className="text-lg text-muted-foreground">
           Queue is full right now
         </p>
@@ -114,15 +114,15 @@ export function RemoteJoin() {
   // Confirmation — live updating via Realtime
   if (step === "confirmation" && result) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-5 p-6 text-center">
+      <div className="min-h-screen flex flex-col items-center gap-5 px-6 pt-[12vh] pb-6 text-center">
         <Link href="/">
           <Image
             src="/logo.jpeg"
             alt="The Chop Shop"
-            width={80}
-            height={80}
+            width={100}
+            height={100}
             className="rounded-full"
-            sizes="80px"
+            sizes="100px"
           />
         </Link>
 
@@ -201,7 +201,7 @@ export function RemoteJoin() {
                 href={SHOP.mapsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center w-full h-12 rounded-lg bg-gold text-black font-bold hover:bg-gold-dark transition-colors"
+                className="flex items-center justify-center w-full h-12 rounded-lg btn-gold transition-colors"
               >
                 Get Directions
               </a>
@@ -224,7 +224,7 @@ export function RemoteJoin() {
             </p>
             <div className="w-full max-w-xs space-y-3 mt-2">
               <Button
-                className="w-full h-12 bg-gold hover:bg-gold-dark text-black font-bold"
+                className="w-full h-12 btn-gold"
                 onClick={() => {
                   setStep("name");
                   setName("");
@@ -327,21 +327,24 @@ export function RemoteJoin() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-5 p-6">
+    <div className="min-h-screen flex flex-col items-center gap-5 px-6 pt-[12vh] pb-6">
       <Link href="/">
         <Image
           src="/logo.jpeg"
           alt="The Chop Shop"
-          width={80}
-          height={80}
+          width={200}
+          height={200}
           className="rounded-full"
-          sizes="80px"
+          priority
+          sizes="200px"
         />
       </Link>
-      <h1 className="text-2xl font-bold text-gold">Join the Queue</h1>
-      <p className="text-sm text-muted-foreground">
-        Save your spot before you arrive
-      </p>
+      <h1 className="text-4xl font-bold text-gold text-center">
+        The Chop Shop
+        <span className="block text-lg font-normal text-muted-foreground mt-1">
+          Join the Queue
+        </span>
+      </h1>
       <p className="text-xs text-muted-foreground">
         {activeCount} / {shopSettings.queue_cap} in queue
       </p>
@@ -364,7 +367,7 @@ export function RemoteJoin() {
             }}
           />
           <Button
-            className="w-full h-14 text-lg bg-gold hover:bg-gold-dark text-black font-bold"
+            className="w-full h-14 text-lg btn-gold"
             disabled={!name.trim()}
             onClick={() => setStep("phone")}
           >
@@ -411,6 +414,7 @@ export function RemoteJoin() {
             <Button
               variant="outline"
               className="flex-1 h-14 text-lg border-border"
+              aria-label="Go back to name entry"
               onClick={() => {
                 setStep("name");
                 setError("");
@@ -420,7 +424,7 @@ export function RemoteJoin() {
               Back
             </Button>
             <Button
-              className="flex-1 h-14 text-lg bg-gold hover:bg-gold-dark text-black font-bold"
+              className="flex-1 h-14 text-lg btn-gold"
               disabled={phone.replace(/\D/g, "").length < 10 || sendingCode || !turnstileToken}
               onClick={handleSendCode}
             >
@@ -460,7 +464,7 @@ export function RemoteJoin() {
           )}
 
           <Button
-            className="w-full h-14 text-lg bg-gold hover:bg-gold-dark text-black font-bold"
+            className="w-full h-14 text-lg btn-gold"
             disabled={code.length < 4 || verifyingCode}
             onClick={handleVerifyCode}
           >
@@ -497,9 +501,11 @@ export function RemoteJoin() {
                 }
                 className={`h-16 text-lg justify-between px-6 ${
                   selectedService?.id === service.id
-                    ? "bg-gold text-black hover:bg-gold-dark"
+                    ? "btn-gold"
                     : ""
                 }`}
+                aria-pressed={selectedService?.id === service.id}
+                aria-label={`Select ${service.name}${service.price != null ? ` — $${service.price}` : ""} — approximately ${service.duration_minutes} minutes`}
                 onClick={() => setSelectedService(service)}
               >
                 <span>{service.name}</span>
@@ -518,6 +524,7 @@ export function RemoteJoin() {
             <Button
               variant="outline"
               className="flex-1 h-14 text-lg border-border"
+              aria-label="Go back to phone verification"
               onClick={() => {
                 setStep("phone");
                 setSelectedService(null);
@@ -526,7 +533,7 @@ export function RemoteJoin() {
               Back
             </Button>
             <Button
-              className="flex-1 h-14 text-lg bg-gold hover:bg-gold-dark text-black font-bold"
+              className="flex-1 h-14 text-lg btn-gold"
               disabled={!selectedService || submitting}
               onClick={handleSubmit}
             >

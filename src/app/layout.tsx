@@ -17,10 +17,8 @@ const geistMono = Geist_Mono({
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
   viewportFit: "cover",
-  themeColor: "#0A0A0A",
+  themeColor: "#0a0a0a",
 };
 
 export const metadata: Metadata = {
@@ -36,14 +34,12 @@ export const metadata: Metadata = {
     description: "Walk-in queue — join the line from anywhere",
     siteName: "The Chop Shop",
     url: "https://queue.thechopshopwatsonville.com",
-    images: [{ url: "/logo.jpeg", width: 500, height: 500 }],
     type: "website",
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "The Chop Shop",
     description: "Walk-in queue — join the line from anywhere",
-    images: ["/logo.jpeg"],
   },
   appleWebApp: {
     capable: true,
@@ -63,6 +59,7 @@ export default function RootLayout({
       "@type": "BarberShop",
       "@id": `${SHOP.domain}/#barbershop`,
       name: SHOP.name,
+      description: "Professional barbershop in Watsonville, CA. Walk-in queue management — join the line from anywhere.",
       url: SHOP.domain,
       telephone: SHOP.phone,
       priceRange: "$$",

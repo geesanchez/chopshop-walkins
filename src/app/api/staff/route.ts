@@ -11,7 +11,7 @@ const CompleteSchema = z.object({
   barberId: z.string().uuid(),
   customerName: z.string().min(1).max(100),
   serviceId: z.string().uuid(),
-  source: z.string().min(1).max(20),
+  source: z.enum(["kiosk", "remote"]),
   calledAt: z.string().nullable(),
 });
 const EntryActionSchema = z.object({

@@ -1,12 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
+import { timingSafeEqual } from "crypto";
 
 const REMOTE_EXPIRE_MINUTES = 30;
 const WAITING_EXPIRE_MINUTES = 120; // 2 hours
 
+function safeCompare(a: string, b: string): boolean {
+  const bufA = Buffer.from(a);
+  const bufB = Buffer.from(b);
+  if (bufA.length !== bufB.length) return false;
+  return timingSafeEqual(bufA, bufB);
+}
+
 export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  const authHeader = request.headers.get("authorization") ?? "";
+  const expected = `Bearer ${process.env.CRON_SECRET}`;
+  if (!safeCompare(authHeader, expected)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const supabase = createServiceClient();
@@ -48,11 +57,15 @@ export async function GET(request: NextRequest) {
       const elapsed = (Date.now() - calledAt) / 60000;
 
       if (elapsed > maxMinutes) {
-        await supabase
+        const { error: updateErr } = await supabase
           .from("queue_entries")
           .update({ status: "completed", completed_at: now })
           .eq("id", entry.id);
-        overdueCompleted++;
+        if (updateErr) {
+          console.error(`[cleanup] Failed to auto-complete entry ${entry.id}: ${updateErr.message}`);
+        } else {
+          overdueCompleted++;
+        }
       }
     }
   }

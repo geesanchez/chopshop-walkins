@@ -98,7 +98,7 @@ export function ChangePinDialog({ open, onClose }: ChangePinDialogProps) {
               </p>
             </div>
             <Button
-              className="w-full bg-gold hover:bg-gold-dark text-black font-bold"
+              className="w-full btn-gold"
               onClick={handleClose}
             >
               Done
@@ -149,7 +149,7 @@ export function ChangePinDialog({ open, onClose }: ChangePinDialogProps) {
 
             <Button
               type="submit"
-              className="w-full h-12 bg-gold hover:bg-gold-dark text-black font-bold"
+              className="w-full h-12 btn-gold"
               disabled={loading || !currentPin || !newPin || !confirmPin}
             >
               {loading ? "Saving..." : "Change PIN"}

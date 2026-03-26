@@ -432,7 +432,7 @@ export function StaffDashboard() {
                       )}
                     <Button
                       size="sm"
-                      className="bg-gold hover:bg-gold-dark text-black"
+                      className="btn-gold"
                       aria-label={`Call ${entry.customer_name}`}
                       onClick={() =>
                         handleAction(
