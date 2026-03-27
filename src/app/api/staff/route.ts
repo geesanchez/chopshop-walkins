@@ -66,25 +66,6 @@ export async function POST(request: NextRequest) {
 
   switch (data.action) {
     case "call": {
-      // Check barber availability before calling
-      const { count: inProgressCount } = await supabase
-        .from("queue_entries")
-        .select("*", { count: "exact", head: true })
-        .eq("status", "in_progress");
-
-      const { data: settings } = await supabase
-        .from("shop_settings")
-        .select("active_barbers")
-        .limit(1)
-        .single();
-
-      if (settings && inProgressCount !== null && inProgressCount >= settings.active_barbers) {
-        return NextResponse.json(
-          { error: "All barbers are busy. Complete a cut before calling the next person." },
-          { status: 409 }
-        );
-      }
-
       const { data: updatedEntry, error: updateErr } = await supabase
         .from("queue_entries")
         .update({
@@ -97,22 +78,22 @@ export async function POST(request: NextRequest) {
 
       if (updateErr) return dbErr("call", updateErr);
 
-      // Send SMS notification if customer has a phone number
+      // Send SMS notification (fire-and-forget — don't block the response)
       if (updatedEntry?.phone && process.env.TWILIO_PHONE_NUMBER) {
-        try {
-          const twilioClient = twilio(
-            process.env.TWILIO_ACCOUNT_SID,
-            process.env.TWILIO_AUTH_TOKEN
-          );
-          await twilioClient.messages.create({
+        const twilioClient = twilio(
+          process.env.TWILIO_ACCOUNT_SID,
+          process.env.TWILIO_AUTH_TOKEN
+        );
+        twilioClient.messages
+          .create({
             to: updatedEntry.phone,
             from: process.env.TWILIO_PHONE_NUMBER,
             body: `Hey ${updatedEntry.customer_name}! You're up next at The Chop Shop. Head to the chair!`,
+          })
+          .catch((smsErr: unknown) => {
+            const msg = smsErr instanceof Error ? smsErr.message : "Unknown error";
+            console.error(`[staff/call] SMS failed: ${msg}`);
           });
-        } catch (smsErr) {
-          const msg = smsErr instanceof Error ? smsErr.message : "Unknown error";
-          console.error(`[staff/call] SMS failed: ${msg}`);
-        }
       }
 
       return NextResponse.json({ success: true });
