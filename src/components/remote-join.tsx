@@ -401,6 +401,14 @@ export function RemoteJoin() {
             }}
           />
 
+          <p className="text-[11px] text-muted-foreground/70 text-center leading-relaxed">
+            By entering your phone number, you agree to receive a verification
+            code and a notification when it&apos;s your turn. Msg &amp; data rates
+            may apply. Reply STOP to opt-out. See our{" "}
+            <Link href="/privacy" className="underline">Privacy Policy</Link> and{" "}
+            <Link href="/terms" className="underline">Terms</Link>.
+          </p>
+
           <Turnstile
             onVerify={setTurnstileToken}
             onExpire={() => setTurnstileToken("")}
