@@ -47,7 +47,6 @@ export async function callNext(entryId: string) {
 
 export async function completeCut(
   entryId: string,
-  barberId: string,
   customerName: string,
   serviceId: string,
   source: string,
@@ -55,7 +54,6 @@ export async function completeCut(
 ) {
   await staffAction("complete", {
     entryId,
-    barberId,
     customerName,
     serviceId,
     source,

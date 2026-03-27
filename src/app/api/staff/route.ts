@@ -8,7 +8,6 @@ const CallSchema = z.object({ action: z.literal("call"), entryId: z.string().uui
 const CompleteSchema = z.object({
   action: z.literal("complete"),
   entryId: z.string().uuid(),
-  barberId: z.string().uuid(),
   customerName: z.string().min(1).max(100),
   serviceId: z.string().uuid(),
   source: z.enum(["kiosk", "remote"]),
@@ -124,7 +123,6 @@ export async function POST(request: NextRequest) {
         .from("queue_entries")
         .update({
           status: "completed",
-          assigned_barber_id: data.barberId,
           completed_at: new Date().toISOString(),
         })
         .eq("id", data.entryId);
@@ -134,7 +132,6 @@ export async function POST(request: NextRequest) {
       const { error: historyErr } = await supabase.from("cut_history").insert({
         customer_name: data.customerName,
         service_id: data.serviceId,
-        barber_id: data.barberId,
         source: data.source,
         started_at: data.calledAt,
         completed_at: new Date().toISOString(),

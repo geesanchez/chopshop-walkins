@@ -7,12 +7,6 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -98,14 +92,13 @@ export function StaffDashboard() {
     }
   }
 
-  async function handleCompleteCut(barberId: string) {
+  async function handleCompleteCut() {
     if (!completingEntry) return;
     setActionLoading("complete");
     setActionError(null);
     try {
       await completeCut(
         completingEntry.id,
-        barberId,
         completingEntry.customer_name,
         completingEntry.service_id,
         completingEntry.source,
@@ -479,36 +472,31 @@ export function StaffDashboard() {
         onClose={() => setShowChangePin(false)}
       />
 
-      {/* Complete Cut Dialog — barber selection */}
-      <Dialog
+      {/* Complete Cut Confirmation */}
+      <AlertDialog
         open={!!completingEntry}
         onOpenChange={() => setCompletingEntry(null)}
       >
-        <DialogContent className="bg-card border-border">
-          <DialogHeader>
-            <DialogTitle className="text-gold">
-              Who completed this cut?
-            </DialogTitle>
-          </DialogHeader>
-          <p className="text-sm text-muted-foreground mb-4">
-            {completingEntry?.customer_name} —{" "}
-            {completingEntry?.services?.name}
-          </p>
-          <div className="grid gap-2">
-            {barbers.map((barber) => (
-              <Button
-                key={barber.id}
-                variant="secondary"
-                className="h-14 text-lg justify-start"
-                onClick={() => handleCompleteCut(barber.id)}
-                disabled={actionLoading === "complete"}
-              >
-                {barber.name}
-              </Button>
-            ))}
-          </div>
-        </DialogContent>
-      </Dialog>
+        <AlertDialogContent className="bg-card border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Mark as done?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will complete <span className="font-semibold text-foreground">{completingEntry?.customer_name}</span>&apos;s{" "}
+              <span className="font-semibold text-foreground">{completingEntry?.services?.name}</span> and remove them from the queue.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="border-border">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-green-600 hover:bg-green-700 text-white"
+              disabled={actionLoading === "complete"}
+              onClick={() => handleCompleteCut()}
+            >
+              {actionLoading === "complete" ? "Completing..." : "Done"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Skip Confirmation Dialog */}
       <AlertDialog
