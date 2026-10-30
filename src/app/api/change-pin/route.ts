@@ -6,7 +6,7 @@ import { verifyStaffRequest } from "@/lib/staff-auth";
 
 const ChangePinSchema = z.object({
   currentPin: z.string().min(1).max(20),
-  newPin: z.string().min(4).max(20),
+  newPin: z.string().min(6).max(20),
 });
 
 export async function POST(request: NextRequest) {
@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
 
   const parsed = ChangePinSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: "Current and new PIN required (min 4 digits)" }, { status: 400 });
+    return NextResponse.json({ error: "Current and new PIN required (min 6 digits)" }, { status: 400 });
   }
 
   const { currentPin, newPin } = parsed.data;

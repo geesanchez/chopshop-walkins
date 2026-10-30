@@ -40,8 +40,8 @@ export function ChangePinDialog({ open, onClose }: ChangePinDialogProps) {
     e.preventDefault();
     setError("");
 
-    if (newPin.length < 4) {
-      setError("New PIN must be at least 4 digits");
+    if (newPin.length < 6) {
+      setError("New PIN must be at least 6 digits");
       return;
     }
 
